@@ -1,0 +1,2586 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>英単語 1500</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700&family=DM+Mono:wght@300;400;500&family=Noto+Sans+JP:wght@300;400;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0a0a0f;
+    --surface: #12121a;
+    --card: #1a1a26;
+    --border: #2a2a3e;
+    --accent: #7c6aff;
+    --accent2: #ff6a8a;
+    --gold: #f0c060;
+    --text: #e8e8f0;
+    --muted: #6666888;
+    --green: #50e3a4;
+    --red: #ff5577;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'DM Mono', monospace;
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background: radial-gradient(ellipse 80% 60% at 50% -10%, rgba(124,106,255,0.15) 0%, transparent 60%),
+                radial-gradient(ellipse 40% 40% at 90% 90%, rgba(255,106,138,0.08) 0%, transparent 50%);
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  /* HEADER */
+  header {
+    position: sticky; top: 0; z-index: 100;
+    background: rgba(10,10,15,0.85);
+    backdrop-filter: blur(20px);
+    border-bottom: 1px solid var(--border);
+    padding: 0 24px;
+    display: flex; align-items: center; justify-content: space-between;
+    height: 60px;
+  }
+  .logo {
+    font-family: 'Playfair Display', serif;
+    font-size: 1.3rem;
+    color: var(--accent);
+    letter-spacing: 0.02em;
+  }
+  .logo span { color: var(--gold); }
+  .header-stats {
+    display: flex; gap: 20px; align-items: center;
+  }
+  .stat-chip {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 20px;
+    padding: 4px 12px;
+    font-size: 0.7rem;
+    color: #aaa;
+    letter-spacing: 0.05em;
+  }
+  .stat-chip b { color: var(--accent); }
+
+  /* MAIN LAYOUT */
+  .app {
+    position: relative; z-index: 1;
+    max-width: 900px;
+    margin: 0 auto;
+    padding: 24px 16px 80px;
+  }
+
+  /* CONTROLS */
+  .controls {
+    display: flex; gap: 10px; flex-wrap: wrap;
+    margin-bottom: 24px;
+  }
+  .search-wrap {
+    flex: 1; min-width: 200px;
+    position: relative;
+  }
+  .search-wrap input {
+    width: 100%;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 10px 16px 10px 40px;
+    color: var(--text);
+    font-family: 'DM Mono', monospace;
+    font-size: 0.85rem;
+    outline: none;
+    transition: border-color 0.2s;
+  }
+  .search-wrap input:focus { border-color: var(--accent); }
+  .search-wrap svg {
+    position: absolute; left: 12px; top: 50%; transform: translateY(-50%);
+    opacity: 0.4;
+  }
+  select, button.ctrl-btn {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 10px 14px;
+    color: var(--text);
+    font-family: 'DM Mono', monospace;
+    font-size: 0.8rem;
+    cursor: pointer;
+    outline: none;
+    transition: border-color 0.2s, background 0.2s;
+  }
+  select:focus, button.ctrl-btn:hover { border-color: var(--accent); background: var(--card); }
+  button.ctrl-btn.active { border-color: var(--accent); color: var(--accent); }
+
+  /* MODE TABS */
+  .mode-tabs {
+    display: flex; gap: 0;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 4px;
+    margin-bottom: 28px;
+  }
+  .mode-tab {
+    flex: 1; padding: 9px 0;
+    background: transparent;
+    border: none; border-radius: 7px;
+    color: #666;
+    font-family: 'DM Mono', monospace;
+    font-size: 0.78rem;
+    cursor: pointer;
+    transition: all 0.2s;
+    letter-spacing: 0.04em;
+  }
+  .mode-tab.active {
+    background: var(--accent);
+    color: #fff;
+    box-shadow: 0 2px 12px rgba(124,106,255,0.4);
+  }
+
+  /* FLASHCARD MODE */
+  #mode-flash { display: block; }
+  #mode-list  { display: none; }
+  #mode-quiz  { display: none; }
+
+  .flash-area {
+    display: flex; flex-direction: column; align-items: center; gap: 20px;
+  }
+  .card-counter {
+    font-size: 0.75rem; color: #555;
+    letter-spacing: 0.1em;
+  }
+  .card-counter b { color: var(--text); }
+
+  /* FLIP CARD */
+  .card-scene {
+    width: 100%; max-width: 560px;
+    height: 280px;
+    perspective: 1200px;
+    cursor: pointer;
+  }
+  .card-inner {
+    width: 100%; height: 100%;
+    position: relative;
+    transform-style: preserve-3d;
+    transition: transform 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+  .card-inner.flipped { transform: rotateY(180deg); }
+  .card-face {
+    position: absolute; inset: 0;
+    backface-visibility: hidden;
+    -webkit-backface-visibility: hidden;
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 18px;
+    display: flex; flex-direction: column;
+    align-items: center; justify-content: center;
+    padding: 32px;
+    gap: 12px;
+    box-shadow: 0 8px 40px rgba(0,0,0,0.5);
+  }
+  .card-face.back {
+    transform: rotateY(180deg);
+    background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+    border-color: rgba(124,106,255,0.3);
+  }
+  .card-face::after {
+    content: '';
+    position: absolute;
+    inset: 0; border-radius: 18px;
+    background: linear-gradient(135deg, rgba(255,255,255,0.03) 0%, transparent 60%);
+    pointer-events: none;
+  }
+  .card-word {
+    font-family: 'Playfair Display', serif;
+    font-size: 2.6rem;
+    font-weight: 700;
+    color: var(--text);
+    text-align: center;
+    line-height: 1.2;
+  }
+  .card-phonetic {
+    font-size: 0.85rem;
+    color: var(--accent);
+    letter-spacing: 0.05em;
+  }
+  .card-pos {
+    background: rgba(124,106,255,0.15);
+    border: 1px solid rgba(124,106,255,0.3);
+    border-radius: 6px;
+    padding: 3px 10px;
+    font-size: 0.7rem;
+    color: var(--accent);
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+  }
+  .card-meaning {
+    font-family: 'Noto Sans JP', sans-serif;
+    font-size: 1.5rem;
+    color: var(--gold);
+    text-align: center;
+  }
+  .card-example {
+    font-size: 0.75rem;
+    color: #888;
+    text-align: center;
+    font-style: italic;
+    line-height: 1.6;
+    max-width: 400px;
+  }
+  .card-hint {
+    position: absolute;
+    bottom: 14px; right: 18px;
+    font-size: 0.65rem;
+    color: #444;
+    letter-spacing: 0.08em;
+  }
+
+  .card-nav {
+    display: flex; align-items: center; gap: 16px;
+    width: 100%; max-width: 560px;
+    justify-content: space-between;
+  }
+  .nav-btn {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 50%;
+    width: 48px; height: 48px;
+    display: flex; align-items: center; justify-content: center;
+    cursor: pointer;
+    transition: all 0.2s;
+    font-size: 1.2rem;
+    color: var(--text);
+  }
+  .nav-btn:hover { border-color: var(--accent); color: var(--accent); background: var(--card); }
+  .progress-bar-wrap {
+    flex: 1;
+    height: 4px;
+    background: var(--surface);
+    border-radius: 2px;
+    overflow: hidden;
+  }
+  .progress-bar {
+    height: 100%;
+    background: linear-gradient(90deg, var(--accent), var(--accent2));
+    border-radius: 2px;
+    transition: width 0.3s ease;
+  }
+  .card-actions {
+    display: flex; gap: 10px;
+    width: 100%; max-width: 560px;
+    justify-content: center;
+  }
+  .action-btn {
+    flex: 1; max-width: 160px;
+    padding: 10px 0;
+    border-radius: 10px;
+    border: 1px solid;
+    font-family: 'DM Mono', monospace;
+    font-size: 0.75rem;
+    cursor: pointer;
+    transition: all 0.2s;
+    letter-spacing: 0.05em;
+  }
+  .action-btn.known {
+    background: rgba(80,227,164,0.1);
+    border-color: rgba(80,227,164,0.4);
+    color: var(--green);
+  }
+  .action-btn.known:hover { background: rgba(80,227,164,0.2); }
+  .action-btn.unknown {
+    background: rgba(255,85,119,0.1);
+    border-color: rgba(255,85,119,0.4);
+    color: var(--red);
+  }
+  .action-btn.unknown:hover { background: rgba(255,85,119,0.2); }
+  .action-btn.star {
+    background: rgba(240,192,96,0.1);
+    border-color: rgba(240,192,96,0.4);
+    color: var(--gold);
+    flex: 0; width: 44px; min-width: 44px; padding: 10px;
+    font-size: 1rem;
+  }
+  .action-btn.star:hover { background: rgba(240,192,96,0.2); }
+  .action-btn.star.starred { background: rgba(240,192,96,0.25); }
+
+  /* LIST MODE */
+  .word-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+    gap: 12px;
+  }
+  .word-card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 16px;
+    transition: border-color 0.2s, transform 0.15s;
+    cursor: pointer;
+  }
+  .word-card:hover { border-color: rgba(124,106,255,0.5); transform: translateY(-2px); }
+  .word-card.known-card { border-left: 3px solid var(--green); }
+  .word-card.unknown-card { border-left: 3px solid var(--red); }
+  .wc-top { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 6px; }
+  .wc-word {
+    font-family: 'Playfair Display', serif;
+    font-size: 1.2rem; font-weight: 700;
+  }
+  .wc-num { font-size: 0.65rem; color: #444; }
+  .wc-pos {
+    font-size: 0.65rem; color: var(--accent);
+    letter-spacing: 0.08em; text-transform: uppercase;
+    margin-bottom: 4px;
+  }
+  .wc-meaning {
+    font-family: 'Noto Sans JP', sans-serif;
+    font-size: 0.9rem; color: var(--gold);
+    margin-bottom: 4px;
+  }
+  .wc-phonetic { font-size: 0.7rem; color: #666; }
+
+  /* QUIZ MODE */
+  .quiz-area { display: flex; flex-direction: column; align-items: center; gap: 24px; }
+  .quiz-q {
+    width: 100%; max-width: 580px;
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 20px;
+    padding: 36px 32px 28px;
+    text-align: center;
+    position: relative;
+    transition: border-color 0.3s;
+  }
+  .quiz-q.correct-flash { border-color: var(--green); box-shadow: 0 0 24px rgba(80,227,164,0.2); }
+  .quiz-q.wrong-flash   { border-color: var(--red);   box-shadow: 0 0 24px rgba(255,85,119,0.2); }
+  .quiz-label { font-size: 0.68rem; color: #555; letter-spacing: 0.12em; text-transform: uppercase; margin-bottom: 20px; }
+  .quiz-meaning {
+    font-family: 'Noto Sans JP', sans-serif;
+    font-size: 2rem; font-weight: 700;
+    color: var(--gold);
+    line-height: 1.3;
+    margin-bottom: 10px;
+  }
+  .quiz-pos-cat {
+    font-size: 0.7rem; color: var(--accent);
+    letter-spacing: 0.1em; text-transform: uppercase;
+    margin-bottom: 20px;
+  }
+  .quiz-hint {
+    font-size: 0.75rem; color: #555;
+    letter-spacing: 0.06em;
+    min-height: 1.4em;
+    transition: color 0.2s;
+  }
+  .quiz-hint.show { color: #888; }
+
+  /* typing input row */
+  .quiz-input-row {
+    width: 100%; max-width: 580px;
+    display: flex; gap: 10px; align-items: stretch;
+  }
+  .quiz-input {
+    flex: 1;
+    background: var(--surface);
+    border: 2px solid var(--border);
+    border-radius: 12px;
+    padding: 14px 18px;
+    color: var(--text);
+    font-family: 'Playfair Display', serif;
+    font-size: 1.3rem;
+    outline: none;
+    transition: border-color 0.2s;
+    letter-spacing: 0.03em;
+  }
+  .quiz-input:focus { border-color: var(--accent); }
+  .quiz-input.correct-input { border-color: var(--green); color: var(--green); background: rgba(80,227,164,0.06); }
+  .quiz-input.wrong-input   { border-color: var(--red);   color: var(--red);   background: rgba(255,85,119,0.06); }
+  .quiz-submit {
+    background: var(--accent);
+    border: none; border-radius: 12px;
+    padding: 14px 22px;
+    color: #fff;
+    font-family: 'DM Mono', monospace;
+    font-size: 0.85rem;
+    cursor: pointer;
+    transition: all 0.2s;
+    letter-spacing: 0.05em;
+    white-space: nowrap;
+  }
+  .quiz-submit:hover { background: #9480ff; }
+  .quiz-submit:disabled { opacity: 0.4; cursor: default; }
+
+  /* feedback area */
+  .quiz-feedback {
+    width: 100%; max-width: 580px;
+    min-height: 52px;
+    display: flex; align-items: center; justify-content: center;
+    gap: 10px;
+    font-size: 0.9rem;
+    border-radius: 12px;
+    padding: 14px 20px;
+    background: transparent;
+    transition: all 0.3s;
+    opacity: 0;
+  }
+  .quiz-feedback.visible { opacity: 1; }
+  .quiz-feedback.correct-fb { background: rgba(80,227,164,0.1); border: 1px solid rgba(80,227,164,0.3); color: var(--green); }
+  .quiz-feedback.wrong-fb   { background: rgba(255,85,119,0.1); border: 1px solid rgba(255,85,119,0.3); color: var(--red); }
+  .quiz-feedback .correct-ans {
+    font-family: 'Playfair Display', serif;
+    font-size: 1.1rem;
+    color: var(--text);
+    margin-left: 6px;
+  }
+
+  /* streak & score */
+  .quiz-score {
+    display: flex; gap: 24px;
+    font-size: 0.8rem; color: #666;
+    align-items: center;
+  }
+  .quiz-score .s-correct { color: var(--green); }
+  .quiz-score .s-wrong   { color: var(--red); }
+  .streak-badge {
+    background: rgba(240,192,96,0.15);
+    border: 1px solid rgba(240,192,96,0.3);
+    border-radius: 20px;
+    padding: 3px 10px;
+    font-size: 0.72rem;
+    color: var(--gold);
+    display: none;
+  }
+  .streak-badge.show { display: inline-block; }
+
+  /* skip/hint buttons */
+  .quiz-actions {
+    display: flex; gap: 10px; width: 100%; max-width: 580px; justify-content: flex-end;
+  }
+  .quiz-aux-btn {
+    background: transparent;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 6px 14px;
+    color: #666;
+    font-family: 'DM Mono', monospace;
+    font-size: 0.72rem;
+    cursor: pointer;
+    transition: all 0.2s;
+    letter-spacing: 0.04em;
+  }
+  .quiz-aux-btn:hover { border-color: #666; color: var(--text); }
+  /* Quiz difficulty selector */
+  .quiz-difficulty-row {
+    display: flex; align-items: center; gap: 12px;
+    width: 100%; max-width: 580px;
+  }
+  .quiz-diff-label {
+    font-size: 0.72rem; color: #555; letter-spacing: 0.08em; white-space: nowrap;
+  }
+  .quiz-diff-tabs {
+    display: flex; gap: 4px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 3px;
+  }
+  .quiz-diff-tab {
+    padding: 5px 14px;
+    background: transparent;
+    border: none; border-radius: 5px;
+    color: #666;
+    font-family: 'DM Mono', monospace;
+    font-size: 0.72rem;
+    cursor: pointer;
+    transition: all 0.18s;
+    letter-spacing: 0.04em;
+    white-space: nowrap;
+  }
+  .quiz-diff-tab:hover { color: var(--text); }
+  .quiz-diff-tab.active { background: var(--accent); color: #fff; box-shadow: 0 1px 8px rgba(124,106,255,0.35); }
+  .quiz-diff-tab[data-level="easy"].active  { background: var(--green);  box-shadow: 0 1px 8px rgba(80,227,164,0.35); }
+  .quiz-diff-tab[data-level="mid"].active   { background: var(--gold);   box-shadow: 0 1px 8px rgba(240,192,96,0.35); color: #1a1a26; }
+  .quiz-diff-tab[data-level="hard"].active  { background: var(--red);    box-shadow: 0 1px 8px rgba(255,85,119,0.35); }
+  .quiz-pool-size {
+    font-size: 0.68rem; color: #444; letter-spacing: 0.05em; white-space: nowrap;
+  }
+  .dontknow-btn { border-color: rgba(255,85,119,0.35); color: var(--red); }
+  .dontknow-btn:hover { border-color: var(--red) !important; background: rgba(255,85,119,0.1); color: var(--red) !important; }
+  .dontknow-btn:disabled { opacity: 0.25; cursor: default; pointer-events: none; }
+  .next-btn { border-color: rgba(124,106,255,0.35); color: var(--accent); }
+  .next-btn:not(:disabled):hover { border-color: var(--accent) !important; background: rgba(124,106,255,0.12); color: var(--accent) !important; }
+  .next-btn:disabled { opacity: 0.25; cursor: default; pointer-events: none; }
+
+  /* PAGINATION */
+  .pagination {
+    display: flex; align-items: center; justify-content: center; gap: 8px;
+    margin-top: 28px; flex-wrap: wrap;
+  }
+  .page-btn {
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: 8px; width: 36px; height: 36px;
+    display: flex; align-items: center; justify-content: center;
+    font-family: 'DM Mono', monospace; font-size: 0.75rem;
+    cursor: pointer; transition: all 0.2s; color: var(--text);
+  }
+  .page-btn:hover { border-color: var(--accent); }
+  .page-btn.active { background: var(--accent); border-color: var(--accent); color: #fff; }
+  .page-btn:disabled { opacity: 0.3; cursor: default; }
+
+  .shuffle-btn {
+    display: flex; align-items: center; gap: 6px;
+  }
+  @keyframes fadeSlideUp {
+    from { opacity: 0; transform: translateY(16px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+  .anim-in { animation: fadeSlideUp 0.3s ease forwards; }
+</style>
+</head>
+<body>
+<header>
+  <div class="logo">英単語 <span>1500</span></div>
+  <div class="header-stats">
+    <div class="stat-chip">覚えた: <b id="h-known">0</b></div>
+    <div class="stat-chip">未習: <b id="h-unknown">0</b></div>
+    <div class="stat-chip">★ <b id="h-starred">0</b></div>
+  </div>
+</header>
+
+<div class="app">
+  <!-- CONTROLS -->
+  <div class="controls">
+    <div class="search-wrap">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+      <input type="text" id="search" placeholder="単語を検索...">
+    </div>
+    <select id="filter-cat">
+      <option value="all">全カテゴリ</option>
+      <option value="TOEIC">TOEIC</option>
+      <option value="TOEFL">TOEFL</option>
+      <option value="日常">日常</option>
+      <option value="ビジネス">ビジネス</option>
+      <option value="学術">学術</option>
+    </select>
+    <select id="filter-status">
+      <option value="all">全て</option>
+      <option value="known">覚えた</option>
+      <option value="unknown">未習</option>
+      <option value="starred">★お気に入り</option>
+    </select>
+    <button class="ctrl-btn shuffle-btn" onclick="shuffleWords()">⇄ シャッフル</button>
+  </div>
+
+  <!-- MODE TABS -->
+  <div class="mode-tabs">
+    <button class="mode-tab active" onclick="setMode('flash')">📇 フラッシュカード</button>
+    <button class="mode-tab" onclick="setMode('list')">📋 一覧</button>
+    <button class="mode-tab" onclick="setMode('quiz')">🧠 クイズ</button>
+  </div>
+
+  <!-- FLASH MODE -->
+  <div id="mode-flash">
+    <div class="flash-area">
+      <div class="card-counter">
+        <b id="fc-current">1</b> / <span id="fc-total">500</span>
+      </div>
+      <div class="card-scene" onclick="flipCard()">
+        <div class="card-inner" id="card-inner">
+          <div class="card-face front">
+            <div class="card-pos" id="fc-pos">noun</div>
+            <div class="card-word" id="fc-word">—</div>
+            <div class="card-phonetic" id="fc-phonetic">/—/</div>
+            <div class="card-hint">タップして意味を確認 →</div>
+          </div>
+          <div class="card-face back">
+            <div class="card-pos" id="fc-pos2">noun</div>
+            <div class="card-meaning" id="fc-meaning">—</div>
+            <div class="card-example" id="fc-example">—</div>
+          </div>
+        </div>
+      </div>
+      <div class="card-nav">
+        <button class="nav-btn" onclick="prevCard()">←</button>
+        <div class="progress-bar-wrap">
+          <div class="progress-bar" id="progress-bar"></div>
+        </div>
+        <button class="nav-btn" onclick="nextCard()">→</button>
+      </div>
+      <div class="card-actions">
+        <button class="action-btn unknown" onclick="markCard(false)">✗ まだ</button>
+        <button class="action-btn star" id="star-btn" onclick="toggleStar()">☆</button>
+        <button class="action-btn known" onclick="markCard(true)">✓ 覚えた</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- LIST MODE -->
+  <div id="mode-list">
+    <div class="word-grid" id="word-grid"></div>
+    <div class="pagination" id="pagination"></div>
+  </div>
+
+  <!-- QUIZ MODE -->
+  <div id="mode-quiz">
+    <div class="quiz-area">
+
+      <!-- difficulty selector -->
+      <div class="quiz-difficulty-row">
+        <span class="quiz-diff-label">難易度</span>
+        <div class="quiz-diff-tabs" id="quiz-diff-tabs">
+          <button class="quiz-diff-tab active" data-level="all"  onclick="setDifficulty('all')">すべて</button>
+          <button class="quiz-diff-tab"         data-level="easy" onclick="setDifficulty('easy')">初級</button>
+          <button class="quiz-diff-tab"         data-level="mid"  onclick="setDifficulty('mid')">中級</button>
+          <button class="quiz-diff-tab"         data-level="hard" onclick="setDifficulty('hard')">上級</button>
+        </div>
+        <span class="quiz-pool-size" id="quiz-pool-size"></span>
+      </div>
+
+      <div class="quiz-score">
+        <span>正解: <b class="s-correct" id="q-correct">0</b></span>
+        <span>不正解: <b class="s-wrong" id="q-wrong">0</b></span>
+        <span>問題数: <b id="q-num">0</b></span>
+        <span class="streak-badge" id="q-streak">🔥 0連続</span>
+      </div>
+
+      <div class="quiz-q" id="quiz-card">
+        <div class="quiz-label">次の日本語に対応する英単語を入力してください</div>
+        <div class="quiz-meaning" id="quiz-meaning">—</div>
+        <div class="quiz-pos-cat" id="quiz-pos-cat">—</div>
+        <div class="quiz-hint" id="quiz-hint">ヒント: —</div>
+      </div>
+
+      <div class="quiz-input-row">
+        <input
+          class="quiz-input"
+          id="quiz-input"
+          type="text"
+          autocomplete="off"
+          autocorrect="off"
+          autocapitalize="off"
+          spellcheck="false"
+          placeholder="英単語を入力..."
+        >
+        <button class="quiz-submit" id="quiz-submit-btn" onclick="handleSubmitBtn()">確認 ↵</button>
+      </div>
+
+      <div class="quiz-feedback" id="quiz-feedback"></div>
+
+      <div class="quiz-actions">
+        <button class="quiz-aux-btn" id="hint-btn" onclick="showHint()">💡 ヒント</button>
+        <button class="quiz-aux-btn dontknow-btn" id="dontknow-btn" onclick="dontKnow()">❓ わからない</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+// ============================================================
+//  500 VOCABULARY WORDS
+// ============================================================
+const RAW = [
+  ["up","副詞","上に","ʌp","Step up when needed.","日常"],
+  ["end","動詞","終わらせる","end","End the meeting on time.","日常"],
+  ["let","動詞","させる","let","Let the team decide.","日常"],
+  ["set","動詞","設定する","set","Set clear goals.","日常"],
+  ["get","動詞","得る・なる","ɡet","Get results fast.","日常"],
+  ["yet","副詞","まだ・それでも","jet","Not done yet — keep going.","日常"],
+  ["go","動詞","行く","ɡəʊ","Go ahead with the plan.","日常"],
+  ["ask","動詞","尋ねる","æsk","May I ask a question?","日常"],
+  ["big","形容詞","大きい","bɪɡ","That is a big opportunity.","日常"],
+  ["buy","動詞","買う","baɪ","Buy the best tools available.","日常"],
+  ["fix","動詞","修正する","fɪks","Fix the bug immediately.","日常"],
+  ["new","形容詞","新しい","njuː","Try new approaches regularly.","日常"],
+  ["pay","動詞","支払う","peɪ","Pay attention to detail.","日常"],
+  ["put","動詞","置く","pʊt","Put the plan into action.","日常"],
+  ["say","動詞","言う","seɪ","Say what you mean clearly.","日常"],
+  ["see","動詞","見る・理解する","siː","See the big picture.","日常"],
+  ["try","動詞","試みる","traɪ","Try a different approach.","日常"],
+  ["use","動詞","使う","juːz","Use data to make decisions.","日常"],
+  ["win","動詞","勝つ","wɪn","Win by outworking the competition.","日常"],
+  ["add","動詞","追加する","æd","Add value to every interaction.","日常"],
+  ["key","形容詞","重要な","kiː","Identify key drivers.","日常"],
+  ["way","名詞","方法","weɪ","Find a better way.","日常"],
+  ["hot","形容詞","熱い","hɒt","Strike while the iron is hot.","日常"],
+  ["age","名詞","年齢","eɪdʒ","Age is just a number.","日常"],
+  ["day","名詞","日","deɪ","One day at a time.","日常"],
+  ["job","名詞","仕事","dʒɒb","Find a job you love.","日常"],
+  ["act","動詞","行動する","ækt","Act on your best ideas.","日常"],
+  ["eat","動詞","食べる","iːt","Eat well to stay focused.","日常"],
+  ["hit","動詞","達成する","hɪt","Hit the target this quarter.","日常"],
+  ["mix","動詞","混ぜる","mɪks","Mix different perspectives.","日常"],
+  ["few","形容詞","少数の","fjuː","A few key points to note.","日常"],
+  ["now","副詞","今","naʊ","Act now, not later.","日常"],
+  ["off","副詞","離れて","ɒf","Take time off to recharge.","日常"],
+  ["out","副詞","外に","aʊt","Think out of the box.","日常"],
+  ["too","副詞","〜すぎる","tuː","Don\'t take on too much.","日常"],
+  ["run","動詞","走る・運営する","rʌn","Run to catch the train.","日常"],
+  ["fit","動詞","合う","fɪt","Find a role that fits you.","日常"],
+  ["help","動詞","助ける","help","Help your team when needed.","日常"],
+  ["next","形容詞","次の","nekst","Plan the next steps clearly.","日常"],
+  ["send","動詞","送る","send","Send the report by email.","日常"],
+  ["tell","動詞","伝える","tel","Tell the truth always.","日常"],
+  ["test","動詞","テストする","test","Test before you launch.","日常"],
+  ["less","形容詞","より少ない","les","Do less but do it well.","日常"],
+  ["then","副詞","それから","ðen","Plan first, then execute.","日常"],
+  ["well","副詞","うまく","wel","Do your job well.","日常"],
+  ["else","副詞","ほかに","els","What else can we improve?","日常"],
+  ["own","動詞","所有する","əʊn","Own your mistakes and learn.","日常"],
+  ["low","形容詞","低い","ləʊ","Keep costs low.","日常"],
+  ["come","動詞","来る","kʌm","Come to the meeting on time.","日常"],
+  ["fail","動詞","失敗する","feɪl","Learn from every time you fail.","日常"],
+  ["feel","動詞","感じる","fiːl","Feel free to ask questions.","日常"],
+  ["find","動詞","見つける","faɪnd","Find a better solution.","日常"],
+  ["free","形容詞","自由な","friː","Free up time for deep work.","日常"],
+  ["full","形容詞","満杯の","fʊl","Work at full capacity.","日常"],
+  ["gain","動詞","得る","ɡeɪn","Gain experience on the job.","日常"],
+  ["give","動詞","与える","ɡɪv","Give clear feedback.","日常"],
+  ["good","形容詞","良い","ɡʊd","Develop good habits.","日常"],
+  ["keep","動詞","保持する","kiːp","Keep records up to date.","日常"],
+  ["like","動詞","好む","laɪk","Like-minded people collaborate well.","日常"],
+  ["live","動詞","生きる","lɪv","Live the company values.","日常"],
+  ["long","形容詞","長い","lɒŋ","Long-term planning is essential.","日常"],
+  ["lose","動詞","失う","luːz","Never lose focus on the goal.","日常"],
+  ["love","動詞","愛する","lʌv","Love what you do.","日常"],
+  ["make","動詞","作る","meɪk","Make a positive impact.","日常"],
+  ["meet","動詞","会う・満たす","miːt","Meet the deadline every time.","日常"],
+  ["mind","名詞","心・気にする","maɪnd","Keep an open mind.","日常"],
+  ["miss","動詞","見逃す・恋しく思う","mɪs","Don't miss the important details.","日常"],
+  ["move","動詞","動く","muːv","Move fast and adapt.","日常"],
+  ["need","動詞","必要とする","niːd","Define what you need first.","日常"],
+  ["pick","動詞","選ぶ","pɪk","Pick the right tool for the job.","日常"],
+  ["plan","動詞","計画する","plæn","Plan before you execute.","日常"],
+  ["play","動詞","果たす","pleɪ","Play to your strengths.","日常"],
+  ["pull","動詞","引く・引き出す","pʊl","Pull the latest data from the server.","日常"],
+  ["push","動詞","推進する","pʊʃ","Push the boundaries of innovation.","日常"],
+  ["read","動詞","読む","riːd","Read widely to expand knowledge.","日常"],
+  ["save","動詞","節約する","seɪv","Save time with automation.","日常"],
+  ["stay","動詞","とどまる","steɪ","Stay focused on the goal.","日常"],
+  ["stop","動詞","止める","stɒp","Stop and reflect regularly.","日常"],
+  ["take","動詞","取る","teɪk","Take ownership of your work.","日常"],
+  ["time","名詞","時間","taɪm","Time is the most valuable resource.","日常"],
+  ["wait","動詞","待つ","weɪt","Don\'t wait—act now.","日常"],
+  ["want","動詞","望む","wɒnt","Know what you want clearly.","日常"],
+  ["safe","形容詞","安全な","seɪf","Keep the data safe.","日常"],
+  ["wide","形容詞","広い","waɪd","Cast a wide net.","日常"],
+  ["wise","形容詞","賢い","waɪz","Make wise decisions.","日常"],
+  ["wish","名詞","願い","wɪʃ","Express your wish clearly.","日常"],
+  ["back","副詞","戻って","bæk","Come back to the key point.","日常"],
+  ["down","副詞","下に","daʊn","Break it down into steps.","日常"],
+  ["just","副詞","ただ","dʒʌst","Just do it.","日常"],
+  ["main","形容詞","主な","meɪn","Focus on the main point.","日常"],
+  ["many","形容詞","多くの","ˈmeni","Many small actions create change.","日常"],
+  ["much","形容詞","多くの","mʌtʃ","Too much information confuses.","日常"],
+  ["once","副詞","一度","wʌns","Do it right once.","日常"],
+  ["same","形容詞","同じ","seɪm","Keep the same standard.","日常"],
+  ["some","形容詞","いくつかの","sʌm","Get some feedback first.","日常"],
+  ["soon","副詞","すぐに","suːn","Act soon to stay ahead.","日常"],
+  ["such","形容詞","そのような","sʌtʃ","Such problems need fast action.","日常"],
+  ["cost","動詞","費用がかかる","kɒst","How much does it cost?","日常"],
+  ["rush","動詞","急ぐ","rʌʃ","Don't rush critical decisions.","日常"],
+  ["wrap","動詞","まとめる","ræp","Wrap up the meeting.","日常"],
+  ["via","前置詞","〜を経由して","ˈvaɪə","Send it via email.","日常"],
+  ["call","動詞","呼ぶ・電話する","kɔːl","Call the client by noon.","日常"],
+  ["grow","動詞","成長する","ɡrəʊ","Grow your skills every day.","日常"],
+  ["hard","形容詞","難しい・熱心な","hɑːd","Work hard and smart.","日常"],
+  ["know","動詞","知っている","nəʊ","Know your audience well.","日常"],
+  ["pass","動詞","渡す・通る","pɑːs","Pass the document to the team.","日常"],
+  ["real","形容詞","現実の","rɪəl","Focus on real outcomes.","日常"],
+  ["show","動詞","示す","ʃəʊ","Show your work clearly.","日常"],
+  ["talk","動詞","話す","tɔːk","Talk directly to the client.","日常"],
+  ["turn","動詞","変える・向ける","tɜːn","Turn challenges into opportunities.","日常"],
+  ["work","動詞","働く","wɜːk","Work smarter, not harder.","日常"],
+  ["goal","名詞","目標","ɡəʊl","Set SMART goals.","日常"],
+  ["note","動詞","メモする・気づく","nəʊt","Note the key takeaways.","日常"],
+  ["sort","動詞","仕分ける・整理する","sɔːt","Sort the items by priority.","日常"],
+  ["walk","動詞","歩く・案内する","wɔːk","Walk through the process step by step.","日常"],
+  ["flow","動詞","流れる","fləʊ","Let ideas flow freely.","日常"],
+  ["join","動詞","参加する","dʒɔɪn","Join the project team.","日常"],
+  ["slow","形容詞","遅い","sləʊ","Progress was slow at first.","日常"],
+  ["sure","形容詞","確かな","ʃʊər","Make sure before you submit.","日常"],
+  ["word","名詞","言葉","wɜːd","Choose your words carefully.","日常"],
+  ["both","形容詞","両方の","bəʊθ","Consider both sides equally.","日常"],
+  ["ever","副詞","かつて","ˈevər","Better than ever before.","日常"],
+  ["last","形容詞","最後の","lɑːst","Finish last tasks first.","日常"],
+  ["most","形容詞","最も多い","məʊst","Most problems have simple solutions.","日常"],
+  ["earn","動詞","稼ぐ・得る","ɜːn","Earn trust through results.","日常"],
+  ["code","名詞","コード","kəʊd","Write clean code.","日常"],
+  ["cope","動詞","対処する","kəʊp","Learn to cope with pressure.","日常"],
+  ["rely","動詞","頼る","rɪˈlaɪ","Don\'t rely on a single source.","日常"],
+  ["only","形容詞","唯一の","ˈəʊnli","This is the only option.","日常"],
+  ["able","形容詞","できる","ˈeɪbəl","Be able to explain it simply.","日常"],
+  ["even","副詞","さらに・でも","ˈiːvən","Even small wins matter.","日常"],
+  ["idea","名詞","アイデア","aɪˈdɪə","Share your best ideas freely.","日常"],
+  ["open","動詞","開く","ˈəʊpən","Open the floor to questions.","日常"],
+  ["also","副詞","また","ˈɔːlsəʊ","Also consider the risks.","日常"],
+  ["cut","動詞","削減する","kʌt","Cut unnecessary expenses.","ビジネス"],
+  ["sell","動詞","売る","sel","Sell value, not features.","ビジネス"],
+  ["deal","名詞","取引","diːl","Close the deal this week.","ビジネス"],
+  ["lead","動詞","率いる","liːd","Lead by example.","ビジネス"],
+  ["rise","動詞","上昇する","raɪz","Profits began to rise.","ビジネス"],
+  ["hold","動詞","開催する・保持する","həʊld","Hold a meeting every Monday.","ビジネス"],
+  ["sit","動詞","座る","sɪt","Sit in on the client call.","日常"],
+  ["how","副詞","どのように","haʊ","Figure out how to improve.","日常"],
+  ["air","名詞","空気・雰囲気","eər","Clear the air after a conflict.","日常"],
+  ["lay","動詞","置く・設ける","leɪ","Lay out the plan clearly.","日常"],
+  ["step","名詞","ステップ","step","Take it one step at a time.","日常"],
+  ["head","名詞","頭・長","hed","She is the head of the team.","日常"],
+  ["rest","動詞","休む","rest","Rest to recharge.","日常"],
+  ["tend","動詞","傾向がある","tend","We tend to underestimate time.","日常"],
+  ["old","形容詞","古い","əʊld","Replace old equipment.","日常"],
+  ["base","動詞","基づかせる","beɪs","Base decisions on solid data.","日常"],
+  ["lack","動詞","欠く","læk","Don\'t lack confidence.","日常"],
+  ["list","動詞","列挙する","lɪst","List all action items.","日常"],
+  ["look","動詞","調べる","lʊk","Look for patterns in data.","日常"],
+  ["seek","動詞","求める","siːk","Seek feedback continuously.","日常"],
+  ["view","名詞","見解","vjuː","Share your point of view.","日常"],
+  ["ease","動詞","和らげる","iːz","Ease the transition process.","日常"],
+  ["fair","形容詞","公平な","feər","Apply fair standards.","日常"],
+  ["keen","形容詞","鋭い・熱心な","kiːn","She has a keen eye for detail.","日常"],
+  ["span","動詞","及ぶ・かかる","spæn","The project spans two years.","日常"],
+  ["late","形容詞","遅い","leɪt","Don\'t be late for the interview.","日常"],
+  ["nice","形容詞","良い","naɪs","That\'s a nice idea.","日常"],
+  ["weak","形容詞","弱い","wiːk","Identify weak points.","日常"],
+  ["book","名詞","本","bʊk","Read one book per month.","日常"],
+  ["file","名詞","ファイル","faɪl","Save the file regularly.","日常"],
+  ["life","名詞","生活","laɪf","Improve quality of life.","日常"],
+  ["line","名詞","行・線","laɪn","Read between the lines.","日常"],
+  ["name","名詞","名前","neɪm","Know every client\'s name.","日常"],
+  ["page","名詞","ページ","peɪdʒ","Limit the report to one page.","日常"],
+  ["room","名詞","部屋","ruːm","There is room to improve.","日常"],
+  ["rule","名詞","規則","ruːl","Follow the golden rule.","日常"],
+  ["side","名詞","側面","saɪd","Consider both sides.","日常"],
+  ["team","名詞","チーム","tiːm","Build a great team.","日常"],
+  ["tool","名詞","ツール","tuːl","Choose the right tool.","日常"],
+  ["town","名詞","町","taʊn","Visit the client in their town.","日常"],
+  ["type","名詞","種類","taɪp","What type of data is it?","日常"],
+  ["week","名詞","週","wiːk","Review progress each week.","日常"],
+  ["drop","動詞","落とす","drɒp","Drop everything for urgent tasks.","日常"],
+  ["fill","動詞","埋める","fɪl","Fill in the form completely.","日常"],
+  ["jump","動詞","飛び込む","dʒʌmp","Jump at good opportunities.","日常"],
+  ["quit","動詞","辞める","kwɪt","Never quit when close to success.","日常"],
+  ["wake","動詞","目覚める","weɪk","Wake up with a purpose.","日常"],
+  ["blog","名詞","ブログ","blɒɡ","Write a weekly blog post.","日常"],
+  ["fact","名詞","事実","fækt","Stick to the facts.","日常"],
+  ["pain","名詞","痛み","peɪn","Solve the customer\'s pain point.","日常"],
+  ["high","形容詞","高い","haɪ","Aim high but stay realistic.","日常"],
+  ["very","副詞","非常に","ˈveri","Be very clear in writing.","日常"],
+  ["link","名詞","リンク・つながり","lɪŋk","Share the link with your team.","日常"],
+  ["deep","形容詞","深い","diːp","Do deep work daily.","日常"],
+  ["hang","動詞","かける・待つ","hæŋ","Hang on, I'll check that.","日常"],
+  ["hide","動詞","隠す","haɪd","Never hide problems from your team.","日常"],
+  ["kind","形容詞","親切な","kaɪnd","Be kind to your colleagues.","日常"],
+  ["plus","接続詞","さらに","plʌs","Plus, it saves time.","日常"],
+  ["check","動詞","確認する","tʃek","Check your email every morning.","日常"],
+  ["quest","名詞","探求","kwest","The quest for knowledge continues.","日常"],
+  ["realm","名詞","領域","relm","Enter the realm of possibility.","日常"],
+  ["press","動詞","押す","pres","Press the button to confirm.","日常"],
+  ["spend","動詞","費やす","spend","Spend time on high-value tasks.","日常"],
+  ["sense","名詞","感覚・意味","sens","Make sense of the data.","日常"],
+  ["chest","名詞","胸・箱","tʃest","Keep your cards close to your chest.","日常"],
+  ["part","名詞","部分","pɑːt","Play your part in the team.","日常"],
+  ["path","名詞","道","pɑːθ","Choose the right career path.","日常"],
+  ["task","名詞","タスク","tɑːsk","Complete each task on time.","日常"],
+  ["calm","形容詞","落ち着いた","kɑːm","Stay calm under pressure.","日常"],
+  ["sole","形容詞","唯一の","səʊl","She is the sole decision-maker.","日常"],
+  ["peer","名詞","同僚・仲間","pɪər","Seek feedback from peers.","日常"],
+  ["busy","形容詞","忙しい","ˈbɪzi","I am too busy to attend.","日常"],
+  ["cold","形容詞","冷たい","kəʊld","The office is too cold.","日常"],
+  ["easy","形容詞","簡単な","ˈiːzi","Make it easy for the user.","日常"],
+  ["fast","形容詞","速い","fɑːst","Work fast but accurately.","日常"],
+  ["poor","形容詞","質の低い","pʊər","Poor communication causes problems.","日常"],
+  ["city","名詞","都市","ˈsɪti","The office is in the city center.","日常"],
+  ["door","名詞","ドア","dɔːr","Open the door to new ideas.","日常"],
+  ["home","名詞","家","həʊm","Work from home effectively.","日常"],
+  ["year","名詞","年","jɪər","Plan for the year ahead.","日常"],
+  ["copy","動詞","コピーする","ˈkɒpi","Copy the best and improve it.","日常"],
+  ["draw","動詞","描く","drɔː","Draw a diagram to explain.","日常"],
+  ["vote","動詞","投票する","vəʊt","Vote on the best option.","日常"],
+  ["warn","動詞","警告する","wɔːn","Warn the team of risks early.","日常"],
+  ["term","名詞","用語・期間","tɜːm","Define every technical term.","日常"],
+  ["zone","名詞","ゾーン","zəʊn","Get into the zone.","日常"],
+  ["here","副詞","ここで","hɪər","Here is the summary.","日常"],
+  ["born","形容詞","生まれた","bɔːn","Born to lead.","日常"],
+  ["bring","動詞","持ってくる","brɪŋ","Bring your ID to the office.","日常"],
+  ["clean","形容詞","清潔な","kliːn","Keep the workspace clean.","日常"],
+  ["leave","動詞","去る・残す","liːv","Leave early to avoid traffic.","日常"],
+  ["reach","動詞","届く・達する","riːtʃ","Reach out to the client today.","日常"],
+  ["ready","形容詞","準備ができた","ˈredi","Be ready for any challenge.","日常"],
+  ["right","形容詞","正しい","raɪt","Make the right decision.","日常"],
+  ["share","動詞","共有する","ʃeər","Share knowledge openly.","日常"],
+  ["solve","動詞","解決する","sɒlv","Solve problems creatively.","日常"],
+  ["speak","動詞","話す","spiːk","Speak with confidence.","日常"],
+  ["state","動詞","述べる","steɪt","State your objective clearly.","日常"],
+  ["think","動詞","考える","θɪŋk","Think critically and creatively.","日常"],
+  ["write","動詞","書く","raɪt","Write concisely and clearly.","日常"],
+  ["build","動詞","構築する","bɪld","Build trust over time.","日常"],
+  ["place","動詞","置く・注文する","pleɪs","Place the order before noon.","日常"],
+  ["raise","動詞","上げる・育てる","reɪz","Raise your standards high.","日常"],
+  ["touch","動詞","触れる","tʌtʃ","Don\'t touch the live system.","日常"],
+  ["treat","動詞","扱う","triːt","Treat everyone with respect.","日常"],
+  ["trust","動詞","信頼する","trʌst","Trust but verify.","日常"],
+  ["watch","動詞","見守る","wɒtʃ","Watch for early warning signs.","日常"],
+  ["wrong","形容詞","間違った","rɒŋ","Admit when you are wrong.","日常"],
+  ["brief","形容詞","簡潔な","briːf","Keep your answer brief.","日常"],
+  ["swift","形容詞","素早い","swɪft","Take swift action on issues.","日常"],
+  ["cheap","形容詞","安い","tʃiːp","Find a cheap solution.","日常"],
+  ["empty","形容詞","空の","ˈempti","The inbox is finally empty.","日常"],
+  ["quick","形容詞","素早い","kwɪk","Give a quick summary.","日常"],
+  ["young","形容詞","若い","jʌŋ","Young talent needs mentoring.","日常"],
+  ["group","名詞","グループ","ɡruːp","Work in small groups.","日常"],
+  ["house","名詞","家","haʊs","A house of ideas.","日常"],
+  ["light","名詞","光","laɪt","Shed light on the issue.","日常"],
+  ["month","名詞","月","mʌnθ","Review goals each month.","日常"],
+  ["price","名詞","価格","praɪs","Negotiate the best price.","日常"],
+  ["skill","名詞","スキル","skɪl","Develop your core skills.","日常"],
+  ["space","名詞","空間","speɪs","Create space for creativity.","日常"],
+  ["thing","名詞","もの","θɪŋ","Focus on one thing at a time.","日常"],
+  ["catch","動詞","掴む","kætʃ","Catch errors early.","日常"],
+  ["count","動詞","数える","kaʊnt","Count every contribution.","日常"],
+  ["greet","動詞","挨拶する","ɡriːt","Greet every client warmly.","日常"],
+  ["print","動詞","印刷する","prɪnt","Print the agenda in advance.","日常"],
+  ["sleep","動詞","眠る","sliːp","Sleep enough to stay sharp.","日常"],
+  ["smile","動詞","微笑む","smaɪl","Smile during presentations.","日常"],
+  ["stand","動詞","立つ","stænd","Stand by your decisions.","日常"],
+  ["break","名詞","休憩","breɪk","Take a short break.","日常"],
+  ["field","名詞","分野","fiːld","Become an expert in your field.","日常"],
+  ["piece","名詞","一部","piːs","Every piece of feedback helps.","日常"],
+  ["speed","名詞","速度","spiːd","Increase processing speed.","日常"],
+  ["waste","動詞","無駄にする","weɪst","Never waste a good idea.","日常"],
+  ["every","形容詞","すべての","ˈevri","Every detail counts.","日常"],
+  ["since","接続詞","〜以来","sɪns","Much has changed since then.","日常"],
+  ["still","副詞","まだ","stɪl","Still room to improve.","日常"],
+  ["match","動詞","合う・一致する","mætʃ","Match the task to the right person.","日常"],
+  ["claim","動詞","主張する","kleɪm","Claim your achievements confidently.","日常"],
+  ["cross","動詞","越える","krɒs","Cross-check all figures.","日常"],
+  ["crowd","名詞","群衆","kraʊd","Stand out from the crowd.","日常"],
+  ["doubt","名詞","疑い","daʊt","Eliminate all doubt.","日常"],
+  ["front","名詞","前面・最前線","frʌnt","Be at the front of innovation.","日常"],
+  ["judge","動詞","判断する","dʒʌdʒ","Judge results, not effort alone.","日常"],
+  ["round","動詞","まとめる","raʊnd","Round up the key points.","日常"],
+  ["seems","動詞","〜のようだ","siːmz","It seems like a good idea.","日常"],
+  ["shift","動詞","変える・移す","ʃɪft","Shift your mindset.","日常"],
+  ["whose","代名詞","誰の","huːz","Whose idea was it?","日常"],
+  ["friend","名詞","友人","frend","A friend can be a great mentor.","日常"],
+  ["health","名詞","健康","helθ","Prioritize your health.","日常"],
+  ["spread","動詞","広める・広がる","spred","Spread knowledge within the team.","日常"],
+  ["stress","名詞","ストレス","stres","Manage stress effectively.","日常"],
+  ["hour","名詞","時間","ˈaʊər","Limit meetings to one hour.","日常"],
+  ["item","名詞","項目","ˈaɪtəm","Cover every agenda item.","日常"],
+  ["away","副詞","離れて","əˈweɪ","Step away to gain perspective.","日常"],
+  ["upon","前置詞","〜の上に","əˈpɒn","Build upon your strengths.","日常"],
+  ["carry","動詞","運ぶ","ˈkæri","Carry the report to the meeting.","日常"],
+  ["clear","形容詞","明確な","klɪər","Give a clear explanation.","日常"],
+  ["enter","動詞","入力する・入る","ˈentər","Enter the data carefully.","日常"],
+  ["large","形容詞","大きい","lɑːdʒ","A large team requires coordination.","日常"],
+  ["learn","動詞","学ぶ","lɜːn","Learn something new every day.","日常"],
+  ["point","名詞","要点・ポイント","pɔɪnt","Get straight to the point.","日常"],
+  ["start","動詞","始める","stɑːt","Start with the hardest task.","日常"],
+  ["force","名詞","力・強制","fɔːs","Use the force of persuasion.","日常"],
+  ["level","名詞","レベル・水準","ˈlevəl","Raise the performance level.","日常"],
+  ["merit","名詞","長所","ˈmerɪt","Weigh the merits of each proposal.","日常"],
+  ["yearn","動詞","切望する","jɜːn","She yearns to travel abroad.","日常"],
+  ["study","動詞","勉強する・学ぶ","ˈstʌdi","Study every day to improve.","日常"],
+  ["angry","形容詞","怒った","ˈæŋɡri","Don\'t send an angry email.","日常"],
+  ["funny","形容詞","おかしい","ˈfʌni","A funny story can break the ice.","日常"],
+  ["happy","形容詞","幸せな","ˈhæpi","Happy staff are productive staff.","日常"],
+  ["lucky","形容詞","幸運な","ˈlʌki","We were lucky to close the deal.","日常"],
+  ["small","形容詞","小さい","smɔːl","Start with small wins.","日常"],
+  ["smart","形容詞","賢い","smɑːt","Work smart, not just hard.","日常"],
+  ["sorry","形容詞","申し訳ない","ˈsɒri","Say sorry and move forward.","日常"],
+  ["class","名詞","クラス","klɑːs","Attend a training class.","日常"],
+  ["event","名詞","イベント","ɪˈvent","Plan the event carefully.","日常"],
+  ["money","名詞","お金","ˈmʌni","Manage money carefully.","日常"],
+  ["phone","名詞","電話","fəʊn","Answer the phone promptly.","日常"],
+  ["world","名詞","世界","wɜːld","Think globally.","日常"],
+  ["pause","動詞","一時停止する","pɔːz","Pause and reflect before deciding.","日常"],
+  ["react","動詞","反応する","riˈækt","React calmly to bad news.","日常"],
+  ["again","副詞","再び","əˈɡen","Try again after reviewing.","日常"],
+  ["ahead","副詞","前に","əˈhed","Plan ahead of time.","日常"],
+  ["first","形容詞","最初の","fɜːst","First, define the problem.","日常"],
+  ["never","副詞","決して〜ない","ˈnevər","Never stop learning.","日常"],
+  ["broad","形容詞","広い","brɔːd","Take a broad view.","日常"],
+  ["cause","動詞","引き起こす","kɔːz","Identify what causes the error.","日常"],
+  ["extra","形容詞","追加の","ˈekstrə","Put in extra effort.","日常"],
+  ["floor","名詞","フロア・発言権","flɔːr","Give the floor to each speaker.","日常"],
+  ["heart","名詞","心・核心","hɑːt","Get to the heart of the issue.","日常"],
+  ["laugh","動詞","笑う","lɑːf","A good laugh reduces stress.","日常"],
+  ["sharp","形容詞","鋭い・賢い","ʃɑːp","Keep your skills sharp.","日常"],
+  ["whole","形容詞","全体の","həʊl","Look at the whole picture.","日常"],
+  ["worth","形容詞","〜の価値がある","wɜːθ","It is worth the effort.","日常"],
+  ["craft","動詞","丁寧に作る","krɑːft","Craft a compelling message.","日常"],
+  ["change","動詞","変える","tʃeɪndʒ","Change the plan if needed.","日常"],
+  ["choose","動詞","選ぶ","tʃuːz","Choose the best option carefully.","日常"],
+  ["switch","動詞","切り替える","swɪtʃ","Switch to a better method.","日常"],
+  ["strong","形容詞","強い","strɒŋ","Build a strong foundation.","日常"],
+  ["area","名詞","エリア","ˈeərɪə","Focus on your area of expertise.","日常"],
+  ["school","名詞","学校","skuːl","Never stop going to school.","日常"],
+  ["street","名詞","道路","striːt","The new office is on Main Street.","日常"],
+  ["ground","名詞","根拠","ɡraʊnd","Stand your ground.","日常"],
+  ["weight","名詞","重さ・重要度","weɪt","Give weight to all opinions.","日常"],
+  ["over","前置詞","〜以上","ˈəʊvər","Over-communicate when in doubt.","日常"],
+  ["adapt","動詞","適応する","əˈdæpt","Adapt to rapid changes.","日常"],
+  ["agree","動詞","同意する","əˈɡriː","Agree on the key priorities.","日常"],
+  ["allow","動詞","許可する","əˈlaʊ","Allow time for revision.","日常"],
+  ["apply","動詞","申し込む・適用する","əˈplaɪ","Apply best practices daily.","日常"],
+  ["basic","形容詞","基本的な","ˈbeɪsɪk","Master the basics first.","日常"],
+  ["cover","動詞","カバーする・扱う","ˈkʌvər","Cover all the key topics.","日常"],
+  ["exact","形容詞","正確な","ɪɡˈzækt","Use the exact figures.","日常"],
+  ["power","名詞","力","ˈpaʊər","Use the power of data.","日常"],
+  ["input","名詞","入力・意見","ˈɪnpʊt","Your input on this matter is valued.","日常"],
+  ["issue","名詞","問題・発行","ˈɪʃuː","Address the issue immediately.","日常"],
+  ["vital","形容詞","不可欠な","ˈvaɪtəl","Communication is vital.","日常"],
+  ["eager","形容詞","熱心な","ˈiːɡər","She is eager to learn.","日常"],
+  ["renew","動詞","更新する","rɪˈnjuː","Renew the annual contract.","日常"],
+  ["toxic","形容詞","有害な","ˈtɒksɪk","Avoid a toxic work environment.","日常"],
+  ["vivid","形容詞","生き生きとした","ˈvɪvɪd","She has a vivid imagination.","日常"],
+  ["early","形容詞","早い","ˈɜːli","Arrive early for the meeting.","日常"],
+  ["quiet","形容詞","静かな","ˈkwaɪɪt","Find a quiet space to think.","日常"],
+  ["tired","形容詞","疲れた","ˈtaɪəd","Don\'t work when tired.","日常"],
+  ["color","名詞","色","ˈkʌlər","Color affects mood.","日常"],
+  ["email","名詞","メール","ˈiːmeɪl","Reply to every email promptly.","日常"],
+  ["paper","名詞","紙・論文","ˈpeɪpər","Submit your paper on time.","日常"],
+  ["table","名詞","テーブル","ˈteɪbəl","Bring your ideas to the table.","日常"],
+  ["topic","名詞","話題","ˈtɒpɪk","Stay on topic.","日常"],
+  ["image","名詞","イメージ","ˈɪmɪdʒ","Build a positive image.","日常"],
+  ["title","名詞","タイトル","ˈtaɪtəl","Choose a strong title.","日常"],
+  ["limit","動詞","制限する","ˈlɪmɪt","Limit distractions at work.","日常"],
+  ["above","前置詞","〜の上に","əˈbʌv","Think above the ordinary.","日常"],
+  ["often","副詞","よく","ˈɒfən","Review progress often.","日常"],
+  ["other","形容詞","他の","ˈʌðər","Explore other perspectives.","日常"],
+  ["about","前置詞","〜について","əˈbaʊt","Talk about the main issue.","日常"],
+  ["along","前置詞","〜に沿って","əˈlɒŋ","Bring your notes along.","日常"],
+  ["among","前置詞","〜の中で","əˈmʌŋ","Discuss it among yourselves.","日常"],
+  ["aside","副詞","わきに","əˈsaɪd","Set aside time for review.","日常"],
+  ["aware","形容詞","気づいている","əˈweər","Be aware of your surroundings.","日常"],
+  ["delay","動詞","遅らせる","dɪˈleɪ","Don't delay important tasks.","日常"],
+  ["later","副詞","後で","ˈleɪtər","Follow up later today.","日常"],
+  ["until","接続詞","〜まで","ənˈtɪl","Work until the job is done.","日常"],
+  ["civil","形容詞","礼儀正しい","ˈsɪvəl","Stay civil in disagreements.","日常"],
+  ["affect","動詞","影響する","əˈfekt","Budget cuts affect morale.","日常"],
+  ["attend","動詞","出席する","əˈtend","Attend all scheduled meetings.","日常"],
+  ["effort","名詞","努力","ˈefət","Consistent effort leads to success.","日常"],
+  ["object","動詞","反対する","əbˈdʒekt","He objected to the proposal.","日常"],
+  ["select","動詞","選択する","sɪˈlekt","Select the best candidate.","日常"],
+  ["intend","動詞","意図する","ɪnˈtend","I intend to finish by Friday.","日常"],
+  ["remedy","名詞","対処法","ˈremədi","Find a quick remedy.","日常"],
+  ["sphere","名詞","領域・球体","sfɪər","That is outside my sphere.","日常"],
+  ["hungry","形容詞","空腹の","ˈhʌŋɡri","Never make decisions when hungry.","日常"],
+  ["letter","名詞","手紙・文字","ˈletər","Send a follow-up letter.","日常"],
+  ["member","名詞","メンバー","ˈmembər","Every team member matters.","日常"],
+  ["second","名詞","秒・2番目","ˈsekənd","Every second counts.","日常"],
+  ["accept","動詞","受け入れる","əkˈsept","Accept feedback graciously.","日常"],
+  ["forget","動詞","忘れる","fəˈɡet","Never forget a deadline.","日常"],
+  ["search","動詞","検索する","sɜːtʃ","Search for the root cause.","日常"],
+  ["chance","名詞","チャンス","tʃɑːns","Every chance is an opportunity.","日常"],
+  ["choice","名詞","選択","tʃɔɪs","Make the right choice.","日常"],
+  ["energy","名詞","エネルギー","ˈenədʒi","Manage your energy wisely.","日常"],
+  ["source","名詞","出所","sɔːs","Cite the original source.","日常"],
+  ["expect","動詞","期待する","ɪkˈspekt","Expect excellence every day.","日常"],
+  ["extend","動詞","延長する","ɪkˈstend","Extend the deadline if needed.","日常"],
+  ["though","接続詞","〜だが","ðəʊ","Though difficult, it is possible.","日常"],
+  ["depend","動詞","依存する","dɪˈpend","Results depend on effort.","日常"],
+  ["except","前置詞","〜を除いて","ɪkˈsept","All done except one item.","日常"],
+  ["highly","副詞","非常に","ˈhaɪli","She is highly recommended.","日常"],
+  ["likely","形容詞","ありそうな","ˈlaɪkli","It is likely to succeed.","日常"],
+  ["simply","副詞","単純に","ˈsɪmpli","Simply do your best.","日常"],
+  ["unless","接続詞","〜でない限り","ənˈles","Unless you plan, you drift.","日常"],
+  ["clever","形容詞","賢い","ˈklevər","A clever solution saves time.","日常"],
+  ["enjoy","動詞","楽しむ","ɪnˈdʒɔɪ","Enjoy the learning process.","日常"],
+  ["order","動詞","注文する・命じる","ˈɔːdər","Order the supplies today.","日常"],
+  ["avoid","動詞","避ける","əˈvɔɪd","Avoid unnecessary complexity.","日常"],
+  ["focus","動詞","集中する","ˈfəʊkəs","Focus on one task at a time.","日常"],
+  ["refer","動詞","参照する","rɪˈfɜːr","Refer to the user manual.","日常"],
+  ["alter","動詞","変更する","ˈɔːltər","Alter the plan if necessary.","日常"],
+  ["exert","動詞","発揮する","ɪɡˈzɜːt","Exert effort to achieve goals.","日常"],
+  ["alert","形容詞","警戒した","əˈlɜːt","Stay alert during the presentation.","日常"],
+  ["lengthy","形容詞","長い","ˈleŋθi","The process was lengthy.","日常"],
+  ["occur","動詞","起こる","əˈkɜːr","Errors can occur at any stage.","日常"],
+  ["vocal","形容詞","声高な","ˈvəʊkəl","Be vocal about your concerns.","日常"],
+  ["healthy","形容詞","健康な","ˈhelθi","Maintain a healthy work-life balance.","日常"],
+  ["strange","形容詞","奇妙な","streɪndʒ","That\'s a strange request.","日常"],
+  ["after","接続詞","〜の後","ˈɑːftər","Follow up after every meeting.","日常"],
+  ["below","前置詞","〜の下に","bɪˈləʊ","See the details below.","日常"],
+  ["through","前置詞","〜を通して","θruː","Work through the challenges.","日常"],
+  ["apart","副詞","離れて","əˈpɑːt","Set time apart for deep work.","日常"],
+  ["local","形容詞","地域の","ˈləʊkəl","Support local businesses.","日常"],
+  ["decide","動詞","決める","dɪˈsaɪd","Decide quickly and move on.","日常"],
+  ["finish","動詞","終える","ˈfɪnɪʃ","Finish the task before leaving.","日常"],
+  ["listen","動詞","聞く","ˈlɪsən","Listen actively to feedback.","日常"],
+  ["result","名詞","結果・成果","rɪˈzʌlt","Measure the results carefully.","日常"],
+  ["review","動詞","見直す","rɪˈvjuː","Review the draft carefully.","日常"],
+  ["number","名詞","数","ˈnʌmbər","Track the right numbers.","日常"],
+  ["remove","動詞","取り除く","rɪˈmuːv","Remove blockers quickly.","日常"],
+  ["repeat","動詞","繰り返す","rɪˈpiːt","Repeat the key message.","日常"],
+  ["signal","動詞","示す","ˈsɪɡnəl","Signal your intentions early.","日常"],
+  ["adjust","動詞","調整する","əˈdʒʌst","Please adjust the settings.","日常"],
+  ["assume","動詞","仮定する","əˈsjuːm","Don\'t assume the answer is obvious.","日常"],
+  ["commit","動詞","専念する","kəˈmɪt","He committed to the new role.","日常"],
+  ["factor","名詞","要因","ˈfæktər","Cost is a key factor in the decision.","日常"],
+  ["pursue","動詞","追求する","pəˈsjuː","Pursue excellence in everything.","日常"],
+  ["reduce","動詞","減らす","rɪˈdjuːs","Reduce waste in production.","日常"],
+  ["revise","動詞","改訂する","rɪˈvaɪz","Revise the draft before submission.","日常"],
+  ["submit","動詞","提出する","səbˈmɪt","Submit the form by end of day.","日常"],
+  ["unique","形容詞","独自の","juːˈniːk","Each project is unique.","日常"],
+  ["convey","動詞","伝える","kənˈveɪ","Convey the message clearly.","日常"],
+  ["hazard","名詞","危険","ˈhæzərd","Identify potential hazards.","日常"],
+  ["humble","形容詞","謙虚な","ˈhʌmbəl","He remained humble after success.","日常"],
+  ["happen","動詞","起こる","ˈhæpən","What will happen next?","日常"],
+  ["action","名詞","行動","ˈækʃən","Take action without delay.","日常"],
+  ["active","形容詞","積極的な","ˈæktɪv","Stay active in discussions.","日常"],
+  ["enough","形容詞","十分な","ɪˈnʌf","Do you have enough time?","日常"],
+  ["famous","形容詞","有名な","ˈfeɪməs","A famous speaker will attend.","日常"],
+  ["honest","形容詞","正直な","ˈɒnɪst","Be honest in your report.","日常"],
+  ["polite","形容詞","礼儀正しい","pəˈlaɪt","Be polite in all communications.","日常"],
+  ["simple","形容詞","シンプルな","ˈsɪmpəl","Keep the design simple.","日常"],
+  ["useful","形容詞","役立つ","ˈjuːsfəl","That is a useful suggestion.","日常"],
+  ["family","名詞","家族","ˈfæmɪli","Respect family time.","日常"],
+  ["future","名詞","未来","ˈfjuːtʃər","Plan for the future.","日常"],
+  ["minute","名詞","分","ˈmɪnɪt","Use every minute wisely.","日常"],
+  ["office","名詞","オフィス","ˈɒfɪs","Keep the office tidy.","日常"],
+  ["reason","名詞","理由","ˈriːzən","Give a clear reason.","日常"],
+  ["invite","動詞","招待する","ɪnˈvaɪt","Invite feedback at every stage.","日常"],
+  ["travel","動詞","旅行する","ˈtrævəl","Travel broadens the mind.","日常"],
+  ["wonder","動詞","疑問に思う","ˈwʌndər","Wonder leads to innovation.","日常"],
+  ["advice","名詞","アドバイス","ədˈvaɪs","Seek advice from experts.","日常"],
+  ["amount","名詞","量","əˈmaʊnt","Keep the amount reasonable.","日常"],
+  ["detail","名詞","詳細","ˈdiːteɪl","Pay attention to every detail.","日常"],
+  ["matter","動詞","重要である","ˈmætər","Every detail matters.","日常"],
+  ["option","名詞","選択肢","ˈɒpʃən","Explore all options first.","日常"],
+  ["around","副詞","あたりに","əˈraʊnd","Look around for solutions.","日常"],
+  ["beyond","前置詞","〜を超えて","bɪˈɒnd","Go beyond expectations.","日常"],
+  ["figure","名詞","数字・人物","ˈfɪɡər","Check the figures carefully.","日常"],
+  ["across","前置詞","〜を渡って","əˈkrɒs","Collaborate across departments.","日常"],
+  ["assist","動詞","手伝う","əˈsɪst","Assist the new team members.","日常"],
+  ["attach","動詞","添付する","əˈtætʃ","Attach the file to the email.","日常"],
+  ["beside","前置詞","〜のそばに","bɪˈsaɪd","Sit beside your mentor.","日常"],
+  ["bother","動詞","悩ます・わざわざする","ˈbɒðər","Don't bother with low-value tasks.","日常"],
+  ["common","形容詞","一般的な","ˈkɒmən","Use common sense.","日常"],
+  ["damage","名詞","損害","ˈdæmɪdʒ","Limit the damage quickly.","日常"],
+  ["double","動詞","倍にする","ˈdʌbəl","Double your output.","日常"],
+  ["either","形容詞","どちらかの","ˈaɪðər","Either option works.","日常"],
+  ["gather","動詞","集める","ˈɡæðər","Gather feedback from the team.","日常"],
+  ["hardly","副詞","ほとんど〜ない","ˈhɑːdli","Hardly any errors remained.","日常"],
+  ["manner","名詞","方法・態度","ˈmænər","Act in a professional manner.","日常"],
+  ["mostly","副詞","ほとんど","ˈməʊstli","The feedback was mostly positive.","日常"],
+  ["nearly","副詞","ほぼ","ˈnɪəli","Nearly all tasks are complete.","日常"],
+  ["public","形容詞","公的な","ˈpʌblɪk","Make the data public.","日常"],
+  ["remain","動詞","残る","rɪˈmeɪn","Remain calm under pressure.","日常"],
+  ["single","形容詞","単一の","ˈsɪŋɡəl","Focus on a single goal.","日常"],
+  ["surely","副詞","確かに","ˈʃʊəli","Surely we can find a solution.","日常"],
+  ["within","前置詞","〜以内に","wɪˈðɪn","Respond within 24 hours.","日常"],
+  ["couple","名詞","2、3","ˈkʌpəl","Give it a couple of days.","日常"],
+  ["prevent","動詞","防ぐ","prɪˈvent","Prevent errors proactively.","日常"],
+  ["correct","形容詞","正確な","kəˈrekt","Provide correct information.","日常"],
+  ["protect","動詞","守る","prəˈtekt","Protect sensitive data.","日常"],
+  ["request","動詞","要求する","rɪˈkwest","Request clarification early.","日常"],
+  ["suggest","動詞","提案する","səˈdʒest","Suggest improvements openly.","日常"],
+  ["genuine","形容詞","本物の","ˈdʒenjuɪn","She showed genuine enthusiasm.","日常"],
+  ["empathy","名詞","共感","ˈempəθi","Show empathy to your team.","日常"],
+  ["reflect","動詞","反映する・熟考する","rɪˈflekt","Reflect on past mistakes.","日常"],
+  ["setback","名詞","後退・挫折","ˈsetbæk","Overcome every setback.","日常"],
+  ["tension","名詞","緊張","ˈtenʃən","Ease the tension in the room.","日常"],
+  ["address","動詞","対処する","əˈdres","Address concerns immediately.","日常"],
+  ["attempt","動詞","試みる","əˈtempt","Attempt the hardest tasks first.","日常"],
+  ["central","形容詞","中心的な","ˈsentrəl","Play a central role.","日常"],
+  ["helpful","形容詞","役立つ","ˈhelpfəl","Your feedback was very helpful.","日常"],
+  ["country","名詞","国","ˈkʌntri","Expand to a new country.","日常"],
+  ["message","名詞","メッセージ","ˈmesɪdʒ","Keep your message clear.","日常"],
+  ["thought","名詞","考え・思考","θɔːt","Share your thoughts openly.","日常"],
+  ["connect","動詞","つなぐ","kəˈnekt","Connect with your audience.","日常"],
+  ["comment","名詞","コメント","ˈkɒment","Leave a helpful comment.","日常"],
+  ["success","名詞","成功","səkˈses","Celebrate every success.","日常"],
+  ["mention","動詞","述べる","ˈmenʃən","Mention the key points.","日常"],
+  ["section","名詞","セクション","ˈsekʃən","Break the report into sections.","日常"],
+  ["against","前置詞","〜に反対して","əˈɡenst","Argue against the proposal.","日常"],
+  ["collect","動詞","集める","kəˈlekt","Collect feedback from all users.","日常"],
+  ["instead","副詞","代わりに","ɪnˈsted","Instead, try a new approach.","日常"],
+  ["quickly","副詞","素早く","ˈkwɪkli","Respond quickly to change.","日常"],
+  ["roughly","副詞","おおよそ","ˈrʌfli","It takes roughly one hour.","日常"],
+  ["session","名詞","セッション・会合","ˈseʃən","Join the training session.","日常"],
+  ["follow","動詞","従う","ˈfɒləʊ","Follow through on commitments.","日常"],
+  ["notice","動詞","気づく","ˈnəʊtɪs","Notice details others miss.","日常"],
+  ["admire","動詞","称賛する","ədˈmaɪər","I admire her dedication.","日常"],
+  ["enable","動詞","可能にする","ɪˈneɪbəl","Technology enables remote work.","日常"],
+  ["format","名詞","形式・フォーマット","ˈfɔːmæt","Use the correct file format.","日常"],
+  ["formal","形容詞","公式の・正式な","ˈfɔːməl","Use a formal tone in the email.","日常"],
+  ["oppose","動詞","反対する","əˈpəʊz","He opposed the new regulation.","日常"],
+  ["aspire","動詞","熱望する","əˈspaɪər","He aspires to become a doctor.","日常"],
+  ["burden","名詞","負担","ˈbɜːdən","The tax burden increased.","日常"],
+  ["donate","動詞","寄付する","dəʊˈneɪt","He donated to the charity.","日常"],
+  ["mutual","形容詞","相互の","ˈmjuːtʃʊəl","Reach a mutual agreement.","日常"],
+  ["revert","動詞","戻る","rɪˈvɜːt","Revert to the original plan.","日常"],
+  ["answer","名詞","答え","ˈɑːnsər","Find the right answer.","日常"],
+  ["person","名詞","人","ˈpɜːsən","Every person has value.","日常"],
+  ["borrow","動詞","借りる","ˈbɒrəʊ","Borrow good ideas freely.","日常"],
+  ["recall","動詞","思い出す","rɪˈkɔːl","Recall the key action items.","日常"],
+  ["inform","動詞","知らせる","ɪnˈfɔːm","Inform the team immediately.","日常"],
+  ["window","名詞","機会","ˈwɪndəʊ","There is a window of opportunity.","日常"],
+  ["always","副詞","常に","ˈɔːlweɪz","Always be honest.","日常"],
+  ["during","前置詞","〜の間","ˈdjʊərɪŋ","Stay focused during the task.","日常"],
+  ["appear","動詞","現れる・思われる","əˈpɪər","It appears to be correct.","日常"],
+  ["career","名詞","キャリア","kəˈrɪər","Build a rewarding career.","日常"],
+  ["entire","形容詞","全体の","ɪnˈtaɪər","Review the entire document.","日常"],
+  ["ignore","動詞","無視する","ɪɡˈnɔːr","Don't ignore warning signs.","日常"],
+  ["locate","動詞","見つける","ləʊˈkeɪt","Locate the source of the error.","日常"],
+  ["master","動詞","習得する","ˈmɑːstər","Master one skill at a time.","日常"],
+  ["narrow","形容詞","狭い","ˈnærəʊ","Narrow down the options.","日常"],
+  ["normal","形容詞","普通の","ˈnɔːməl","It is normal to feel nervous.","日常"],
+  ["prefer","動詞","好む","prɪˈfɜːr","Prefer quality over speed.","日常"],
+  ["rather","副詞","むしろ","ˈrɑːðər","Rather, focus on impact.","日常"],
+  ["regard","動詞","みなす","rɪˈɡɑːd","Regard mistakes as learning.","日常"],
+  ["friendly","形容詞","親切な","ˈfrendli","Be friendly to new staff.","日常"],
+  ["discuss","動詞","議論する","dɪˈskʌs","Discuss the options openly.","日常"],
+  ["prepare","動詞","準備する","prɪˈpeər","Prepare thoroughly for meetings.","日常"],
+  ["problem","名詞","問題","ˈprɒbləm","Solve the problem at the root.","日常"],
+  ["arrange","動詞","手配する","əˈreɪndʒ","Arrange a follow-up meeting.","日常"],
+  ["develop","動詞","発展させる・開発する","dɪˈveləp","Develop new skills constantly.","日常"],
+  ["explain","動詞","説明する","ɪkˈspleɪn","Explain your reasoning.","日常"],
+  ["replace","動詞","置き換える","rɪˈpleɪs","Replace outdated tools.","日常"],
+  ["succeed","動詞","成功する","səkˈsiːd","Succeed through persistence.","日常"],
+  ["balance","動詞","釣り合わせる","ˈbæləns","Balance work and personal life.","日常"],
+  ["benefit","名詞","利益・恩恵","ˈbenɪfɪt","The benefit of exercise is well known.","日常"],
+  ["involve","動詞","関与する","ɪnˈvɒlv","This project involves five teams.","日常"],
+  ["provide","動詞","提供する","prəˈvaɪd","Provide adequate resources.","日常"],
+  ["respond","動詞","反応する","rɪˈspɒnd","Respond to emails promptly.","日常"],
+  ["witness","動詞","目撃する","ˈwɪtnɪs","She witnessed the accident.","日常"],
+  ["concise","形容詞","簡潔な","kənˈsaɪs","Keep your writing concise.","日常"],
+  ["crucial","形容詞","重大な","ˈkruːʃəl","This is a crucial moment.","日常"],
+  ["generic","形容詞","一般的な","dʒɪˈnerɪk","Use a generic template first.","日常"],
+  ["summary","名詞","要約","ˈsʌməri","Write a brief summary.","日常"],
+  ["trigger","動詞","引き起こす","ˈtrɪɡər","Stress can trigger health issues.","日常"],
+  ["capture","動詞","捉える","ˈkæptʃər","Capture the key data points.","日常"],
+  ["fragile","形容詞","壊れやすい","ˈfrædʒaɪl","Handle fragile items with care.","日常"],
+  ["gravity","名詞","重力・深刻さ","ˈɡrævɪti","Understand the gravity of the situation.","日常"],
+  ["passive","形容詞","受動的な","ˈpæsɪv","Don\'t be passive; take action.","日常"],
+  ["persist","動詞","持続する","pəˈsɪst","Persist despite setbacks.","日常"],
+  ["prolong","動詞","延長する","prəˈlɒŋ","Prolong the project timeline.","日常"],
+  ["improve","動詞","改善する","ɪmˈpruːv","Continuously improve processes.","日常"],
+  ["include","動詞","含む","ɪnˈkluːd","Include all stakeholders.","日常"],
+  ["receive","動詞","受け取る","rɪˈsiːv","Receive feedback gracefully.","日常"],
+  ["achieve","動詞","達成する","əˈtʃiːv","Achieve your targets on time.","日常"],
+  ["current","形容詞","現在の","ˈkʌrənt","Review the current situation.","日常"],
+  ["meeting","名詞","会議","ˈmiːtɪŋ","Keep the meeting focused.","日常"],
+  ["culture","名詞","文化","ˈkʌltʃər","Build a strong team culture.","日常"],
+  ["feature","名詞","特徴","ˈfiːtʃər","Highlight the key features.","日常"],
+  ["pattern","名詞","パターン","ˈpætən","Recognize patterns early.","日常"],
+  ["reality","名詞","現実","riˈælɪti","Face reality and adapt.","日常"],
+  ["subject","名詞","科目・件名・主題","ˈsʌbdʒɪkt","What is the subject of this email?","日常"],
+  ["trouble","名詞","問題","ˈtrʌbəl","Spot trouble before it grows.","日常"],
+  ["already","副詞","すでに","ɔːlˈredi","The task is already done.","日常"],
+  ["between","前置詞","〜の間に","bɪˈtwiːn","Find common ground between teams.","日常"],
+  ["careful","形容詞","注意深い","ˈkeəfəl","Be careful with sensitive data.","日常"],
+  ["combine","動詞","組み合わせる","kəmˈbaɪn","Combine data from multiple sources.","日常"],
+  ["compare","動詞","比較する","kəmˈpeər","Compare the two options.","日常"],
+  ["despite","前置詞","〜にもかかわらず","dɪˈspaɪt","Despite obstacles, keep going.","日常"],
+  ["display","動詞","表示する","dɪˈspleɪ","Display the data clearly.","日常"],
+  ["exactly","副詞","正確に","ɪɡˈzæktli","Do exactly what was agreed.","日常"],
+  ["finally","副詞","ついに","ˈfaɪnəli","Finally, review and submit.","日常"],
+  ["however","副詞","しかしながら","haʊˈevər","However, there are exceptions.","日常"],
+  ["largely","副詞","主に","ˈlɑːdʒli","Success is largely about consistency.","日常"],
+  ["neither","形容詞","どちらも〜ない","ˈnaɪðər","Neither option is ideal.","日常"],
+  ["perhaps","副詞","おそらく","pəˈhæps","Perhaps we need a new plan.","日常"],
+  ["regular","形容詞","定期的な","ˈreɡjʊlər","Hold regular check-ins.","日常"],
+  ["shortly","副詞","まもなく","ˈʃɔːtli","I will arrive shortly.","日常"],
+  ["usually","副詞","通常","ˈjuːʒuəli","Usually, planning prevents problems.","日常"],
+  ["without","前置詞","〜なしに","wɪˈðaʊt","Work without distractions.","日常"],
+  ["period","名詞","期間・時代","ˈpɪərɪəd","Set a clear time period.","日常"],
+  ["almost","副詞","ほとんど","ˈɔːlməʊst","Almost there—keep pushing.","日常"],
+  ["series","名詞","シリーズ・一連","ˈsɪərɪːz","Run a series of tests.","日常"],
+  ["schedule","名詞","スケジュール","ˈʃedjuːl","Stick to the project schedule.","日常"],
+  ["condense","動詞","凝縮する","kənˈdens","Condense the report to two pages.","日常"],
+  ["question","名詞","質問","ˈkwestʃən","Ask the right question.","日常"],
+  ["slightly","副詞","わずかに","ˈslaɪtli","Results improved slightly.","日常"],
+  ["explore","動詞","探索する","ɪkˈsplɔːr","Explore new possibilities.","日常"],
+  ["forward","副詞","前へ・転送する","ˈfɔːwəd","Forward the email to your team.","日常"],
+  ["propose","動詞","提案する","prəˈpəʊz","Propose a solution.","日常"],
+  ["ability","名詞","能力","əˈbɪlɪti","He has the ability to lead a team.","日常"],
+  ["clarify","動詞","明確にする","ˈklærɪfaɪ","Can you clarify your point?","日常"],
+  ["confirm","動詞","確認する","kənˈfɜːm","Please confirm your reservation.","日常"],
+  ["exhibit","動詞","展示する","ɪɡˈzɪbɪt","The museum will exhibit rare art.","日常"],
+  ["perform","動詞","実行する・演じる","pəˈfɔːm","The team performed excellently.","日常"],
+  ["promote","動詞","促進する・昇進させる","prəˈməʊt","He was promoted to manager.","日常"],
+  ["qualify","動詞","資格を得る","ˈkwɒlɪfaɪ","He qualified for the final round.","日常"],
+  ["require","動詞","必要とする","rɪˈkwaɪər","This task requires attention to detail.","日常"],
+  ["inquiry","名詞","調査","ɪnˈkwaɪəri","Submit your inquiry to the help desk.","日常"],
+  ["reliant","形容詞","依存している","rɪˈlaɪənt","He was reliant on coffee to focus.","日常"],
+  ["amenity","名詞","設備・便益","əˈmiːnɪti","The hotel offered many amenities.","日常"],
+  ["anxiety","名詞","不安","æŋˈzaɪɪti","Test anxiety affects many students.","日常"],
+  ["barrier","名詞","障壁","ˈbærɪər","Language is a common barrier.","日常"],
+  ["capable","形容詞","有能な","ˈkeɪpəbəl","He is capable of leading the project.","日常"],
+  ["caution","名詞","注意","ˈkɔːʃən","Proceed with caution.","日常"],
+  ["cynical","形容詞","皮肉な","ˈsɪnɪkəl","Don\'t be too cynical about change.","日常"],
+  ["gradual","形容詞","徐々の","ˈɡrædʒʊəl","There was a gradual improvement.","日常"],
+  ["nurture","動詞","育てる","ˈnɜːtʃər","Nurture young talent.","日常"],
+  ["tedious","形容詞","退屈な","ˈtiːdɪəs","Avoid tedious repetition.","日常"],
+  ["urgency","名詞","緊急性","ˈɜːdʒənsi","Convey a sense of urgency.","日常"],
+  ["support","動詞","支援する","səˈpɔːt","Support your team daily.","日常"],
+  ["excited","形容詞","興奮した","ɪkˈsaɪtɪd","She was excited about the news.","日常"],
+  ["nervous","形容詞","緊張した","ˈnɜːvəs","It\'s normal to feel nervous.","日常"],
+  ["perfect","形容詞","完璧な","ˈpɜːfɪkt","Perfect is the enemy of good.","日常"],
+  ["popular","形容詞","人気のある","ˈpɒpjʊlər","This is a popular method.","日常"],
+  ["similar","形容詞","似た","ˈsɪmɪlər","Use a similar approach.","日常"],
+  ["morning","名詞","朝","ˈmɔːnɪŋ","Start the morning with a plan.","日常"],
+  ["version","名詞","バージョン","ˈvɜːʃən","Use the latest version.","日常"],
+  ["concern","名詞","懸念","kənˈsɜːn","Address every concern.","日常"],
+  ["opinion","名詞","意見","əˈpɪnjən","Share your opinion clearly.","日常"],
+  ["purpose","名詞","目的","ˈpɜːpəs","Define your purpose clearly.","日常"],
+  ["average","名詞","平均","ˈævərɪdʒ","Calculate the average score.","日常"],
+  ["certain","形容詞","確かな","ˈsɜːtən","Be certain before you submit.","日常"],
+  ["further","副詞","さらに","ˈfɜːðər","Take it one step further.","日常"],
+  ["imagine","動詞","想像する","ɪˈmædʒɪn","Imagine a better process.","日常"],
+  ["logical","形容詞","論理的な","ˈlɒdʒɪkəl","Think in a logical order.","日常"],
+  ["natural","形容詞","自然な","ˈnætʃərəl","Make learning a natural habit.","日常"],
+  ["obvious","形容詞","明らかな","ˈɒbvɪəs","The solution was obvious.","日常"],
+  ["program","名詞","プログラム","ˈprəʊɡræm","Join the training program.","日常"],
+  ["suppose","動詞","〜と思う","səˈpəʊz","I suppose we should reconsider.","日常"],
+  ["typical","形容詞","典型的な","ˈtɪpɪkəl","A typical workday starts early.","日常"],
+  ["various","形容詞","さまざまな","ˈveərɪəs","Consider various perspectives.","日常"],
+  ["describe","動詞","説明する","dɪˈskraɪb","Describe the problem clearly.","日常"],
+  ["complete","動詞","完成させる","kəmˈpliːt","Complete tasks before deadlines.","日常"],
+  ["practice","動詞","練習する","ˈpræktɪs","Practice makes perfect.","日常"],
+  ["dedicate","動詞","捧げる","ˈdedɪkeɪt","She dedicated her time to research.","日常"],
+  ["discount","名詞","割引","ˈdɪskaʊnt","A 10% discount was applied.","日常"],
+  ["flexible","形容詞","柔軟な","ˈfleksɪbəl","Our schedule is quite flexible.","日常"],
+  ["relevant","形容詞","関連した","ˈreləvənt","Include only relevant information.","日常"],
+  ["restrict","動詞","制限する","rɪˈstrɪkt","Restrict access to sensitive data.","日常"],
+  ["fruitful","形容詞","実り多い","ˈfruːtfəl","The meeting was fruitful.","日常"],
+  ["hesitate","動詞","ためらう","ˈhezɪteɪt","Don\'t hesitate to ask for help.","日常"],
+  ["instinct","名詞","本能","ˈɪnstɪŋkt","Trust your professional instinct.","日常"],
+  ["resonate","動詞","共鳴する","ˈrezəneɪt","The message resonated deeply.","日常"],
+  ["thorough","形容詞","徹底した","ˈθʌrə","Conduct a thorough review.","日常"],
+  ["creative","形容詞","創造的な","kriˈeɪtɪv","Think in a creative way.","日常"],
+  ["distance","名詞","距離","ˈdɪstəns","Keep your distance from distractions.","日常"],
+  ["language","名詞","言語","ˈlæŋɡwɪdʒ","Use plain language.","日常"],
+  ["standard","名詞","基準","ˈstændəd","Raise the standard.","日常"],
+  ["together","副詞","一緒に","təˈɡeðər","Succeed together as one team.","日常"],
+  ["function","名詞","機能","ˈfʌŋkʃən","Understand each function clearly.","日常"],
+  ["probably","副詞","おそらく","ˈprɒbəbli","This will probably work.","日常"],
+  ["progress","動詞","進歩する","ˈprəʊɡres","Progress step by step.","日常"],
+  ["properly","副詞","適切に","ˈprɒpəli","Do the job properly.","日常"],
+  ["recently","副詞","最近","ˈriːsəntli","This was recently updated.","日常"],
+  ["remember","動詞","覚えている","rɪˈmembər","Remember the big picture.","日常"],
+  ["separate","動詞","分ける","ˈsepəreɪt","Separate urgent from important.","日常"],
+  ["struggle","動詞","苦労する","ˈstrʌɡəl","Struggle builds resilience.","日常"],
+  ["suddenly","副詞","突然に","ˈsʌdənli","Suddenly the plan changed.","日常"],
+  ["unlikely","形容詞","ありそうもない","ʌnˈlaɪkli","It is unlikely to fail.","日常"],
+  ["actually","副詞","実際に","ˈæktʃuəli","Actually, there is a better way.","日常"],
+  ["conflict","名詞","対立","ˈkɒnflɪkt","Resolve conflict quickly.","日常"],
+  ["ongoing","形容詞","継続中の","ˈɒnɡəʊɪŋ","This is an ongoing investigation.","日常"],
+  ["notable","形容詞","注目すべき","ˈnəʊtəbəl","A notable improvement was seen.","日常"],
+  ["serious","形容詞","深刻な","ˈsɪərɪəs","This is a serious issue.","日常"],
+  ["example","名詞","例","ɪɡˈzɑːmpəl","Lead by example.","日常"],
+  ["article","名詞","記事・条項","ˈɑːtɪkəl","Read the article carefully.","日常"],
+  ["gap","名詞","格差・隔たり","ɡæp","Close the skills gap.","ビジネス"],
+  ["map","動詞","マッピングする","mæp","Map out the customer journey.","ビジネス"],
+  ["tax","名詞","税金","tæks","Understand your tax obligations.","ビジネス"],
+  ["approach","名詞","アプローチ","əˈprəʊtʃ","Try a different approach.","日常"],
+  ["consider","動詞","考慮する","kənˈsɪdər","Consider all options first.","日常"],
+  ["critical","形容詞","重要な・批判的な","ˈkrɪtɪkəl","This is a critical decision.","日常"],
+  ["duration","名詞","持続時間","djʊˈreɪʃən","The duration of the event is 2 hours.","日常"],
+  ["identify","動詞","識別する","aɪˈdentɪfaɪ","Identify the root cause.","日常"],
+  ["priority","名詞","優先事項","praɪˈɒrɪti","Safety is the top priority.","日常"],
+  ["specific","形容詞","具体的な","spəˈsɪfɪk","Be specific about your goals.","日常"],
+  ["ultimate","形容詞","最終的な","ˈʌltɪmɪt","The ultimate goal is customer satisfaction.","日常"],
+  ["category","名詞","カテゴリ","ˈkætɪɡəri","Assign each item to a category.","日常"],
+  ["drawback","名詞","欠点","ˈdrɔːbæk","The main drawback is the cost.","日常"],
+  ["moderate","形容詞","適度な","ˈmɒdərɪt","Exercise at a moderate pace.","日常"],
+  ["prohibit","動詞","禁止する","prəˈhɪbɪt","Smoking is prohibited on campus.","日常"],
+  ["abundant","形容詞","豊富な","əˈbʌndənt","Food was abundant at the festival.","日常"],
+  ["ambition","名詞","野心","æmˈbɪʃən","His ambition drove his success.","日常"],
+  ["dialogue","名詞","対話","ˈdaɪəlɒɡ","Open dialogue is important.","日常"],
+  ["diligent","形容詞","勤勉な","ˈdɪlɪdʒənt","She is a diligent worker.","日常"],
+  ["eligible","形容詞","資格のある","ˈelɪdʒɪbəl","You are eligible to apply.","日常"],
+  ["infinite","形容詞","無限の","ˈɪnfɪnɪt","There are infinite possibilities.","日常"],
+  ["nominate","動詞","指名する","ˈnɒmɪneɪt","She was nominated for an award.","日常"],
+  ["punctual","形容詞","時間を守る","ˈpʌŋktʃʊəl","Be punctual for meetings.","日常"],
+  ["obsolete","形容詞","廃れた","ˈɒbsəliːt","The technology is now obsolete.","日常"],
+  ["positive","形容詞","前向きな","ˈpɒzɪtɪv","Keep a positive attitude.","日常"],
+  ["possible","形容詞","可能な","ˈpɒsɪbəl","Is it possible to extend?","日常"],
+  ["powerful","形容詞","力強い","ˈpaʊəfəl","Data is a powerful tool.","日常"],
+  ["position","名詞","立場・職位","pəˈzɪʃən","Clarify your position.","日常"],
+  ["solution","名詞","解決策","səˈluːʃən","Propose a practical solution.","日常"],
+  ["attitude","名詞","態度","ˈætɪtjuːd","Maintain a positive attitude.","日常"],
+  ["behavior","名詞","行動・ふるまい","bɪˈheɪvjər","Model the right behavior.","日常"],
+  ["decision","名詞","決断","dɪˈsɪʒən","Make bold decisions.","日常"],
+  ["physical","形容詞","身体的な","ˈfɪzɪkəl","Physical health supports mental health.","日常"],
+  ["previous","形容詞","前の","ˈpriːvɪəs","Review previous results.","日常"],
+  ["highlight","動詞","強調する","ˈhaɪlaɪt","Highlight key points in the report.","日常"],
+  ["potential","名詞","可能性","pəˈtenʃəl","Identify the potential for growth.","日常"],
+  ["recognize","動詞","認識する","ˈrekəɡnaɪz","We recognize your hard work.","日常"],
+  ["recommend","動詞","推薦する","ˌrekəˈmend","I recommend this approach.","日常"],
+  ["voluntary","形容詞","自発的な","ˈvɒləntri","Participation is voluntary.","日常"],
+  ["extension","名詞","延長・拡張","ɪkˈstenʃən","Request a deadline extension.","日常"],
+  ["different","形容詞","異なる","ˈdɪfrənt","Try a different approach.","日常"],
+  ["expensive","形容詞","高価な","ɪkˈspensɪv","The tool is too expensive.","日常"],
+  ["direction","名詞","方向","dɪˈrekʃən","Give clear directions.","日常"],
+  ["knowledge","名詞","知識","ˈnɒlɪdʒ","Share your knowledge freely.","日常"],
+  ["challenge","名詞","挑戦","ˈtʃælɪndʒ","Every challenge is a chance to grow.","日常"],
+  ["generally","副詞","一般的に","ˈdʒenərəli","Generally speaking, less is more.","日常"],
+  ["influence","動詞","影響を与える","ˈɪnfluəns","Influence others positively.","日常"],
+  ["meanwhile","副詞","その間に","ˈmiːnwaɪl","Meanwhile, start the next task.","日常"],
+  ["necessary","形容詞","必要な","ˈnesɪsəri","Do only what is necessary.","日常"],
+  ["celebrate","動詞","祝う","ˈselɪbreɪt","Celebrate every milestone.","日常"],
+  ["conscious","形容詞","意識している","ˈkɒnʃəs","Be conscious of your habits.","日常"],
+  ["overlap","動詞","重複する","ˌəʊvəˈlæp","The roles overlap significantly.","日常"],
+  ["pioneer","名詞","先駆者","ˌpaɪəˈnɪər","She was a pioneer in the field.","日常"],
+  ["rate","名詞","割合・速度","reɪt","Track the error rate.","ビジネス"],
+  ["risk","名詞","リスク","rɪsk","Assess every risk carefully.","ビジネス"],
+  ["sign","動詞","サインする・示す","saɪn","Sign the contract today.","ビジネス"],
+  ["motivate","動詞","やる気にさせる","ˈməʊtɪveɪt","A good leader motivates the team.","日常"],
+  ["strengthen","動詞","強化する","ˈstreŋθən","Strengthen team communication.","日常"],
+  ["widespread","形容詞","広範な","ˈwaɪdspred","Widespread support grew.","日常"],
+  ["anecdote","名詞","逸話","ˈænɪkdəʊt","She shared a funny anecdote.","日常"],
+  ["enormous","形容詞","巨大な","ɪˈnɔːməs","The project required enormous effort.","日常"],
+  ["loss","名詞","損失・喪失","lɒs","Minimize financial loss.","ビジネス"],
+  ["sale","名詞","販売","seɪl","Close the sale today.","ビジネス"],
+  ["although","接続詞","〜だけれども","ɔːlˈðəʊ","Although difficult, it is possible.","日常"],
+  ["familiar","形容詞","よく知っている","fəˈmɪlɪər","Get familiar with the process.","日常"],
+  ["suitable","形容詞","適切な","ˈsuːɪtəbəl","Choose a suitable approach.","日常"],
+  ["audience","名詞","聴衆","ˈɔːdɪəns","Know your audience well.","日常"],
+  ["customize","動詞","カスタマイズする","ˈkʌstəmaɪz","You can customize the settings.","日常"],
+  ["cultivate","動詞","育てる","ˈkʌltɪveɪt","Cultivate good working relationships.","日常"],
+  ["establish","動詞","確立する","ɪˈstæblɪʃ","Establish clear expectations.","日常"],
+  ["authentic","形容詞","本物の","ɔːˈθentɪk","The signature was authentic.","日常"],
+  ["proximity","名詞","近さ","prɒkˈsɪmɪti","Proximity to the station is key.","日常"],
+  ["reluctant","形容詞","気乗りしない","rɪˈlʌktənt","He was reluctant to delegate.","日常"],
+  ["beautiful","形容詞","美しい","ˈbjuːtɪfəl","She has a beautiful idea.","日常"],
+  ["confident","形容詞","自信のある","ˈkɒnfɪdənt","Be confident in your skills.","日常"],
+  ["dangerous","形容詞","危険な","ˈdeɪndʒərəs","Avoid dangerous shortcuts.","日常"],
+  ["difficult","形容詞","難しい","ˈdɪfɪkəlt","It\'s a difficult problem.","日常"],
+  ["agreement","名詞","合意","əˈɡriːmənt","Reach an agreement quickly.","日常"],
+  ["condition","名詞","条件","kənˈdɪʃən","Agree on the conditions.","日常"],
+  ["trend","名詞","傾向","trend","Follow market trends closely.","ビジネス"],
+  ["overall","形容詞","全体的な","ˌəʊvərˈɔːl","The overall result is positive.","日常"],
+  ["technology","名詞","技術","tekˈnɒlədʒi","Adopt new technology wisely.","日常"],
+  ["conscience","名詞","良心","ˈkɒnʃəns","Act according to your conscience.","日常"],
+  ["tremendous","形容詞","莫大な","trɪˈmendəs","The impact was tremendous.","日常"],
+  ["successful","形容詞","成功した","səkˈsesfəl","A successful launch requires planning.","日常"],
+  ["difference","名詞","違い","ˈdɪfrəns","Notice the small differences.","日常"],
+  ["background","名詞","背景・経歴","ˈbækɡraʊnd","Share your background briefly.","日常"],
+  ["especially","副詞","特に","ɪˈspeʃəli","Focus especially on quality.","日常"],
+  ["eventually","副詞","最終的に","ɪˈventʃuəli","Effort eventually pays off.","日常"],
+  ["throughout","前置詞","〜を通じて","θruːˈaʊt","Apply best practices throughout.","日常"],
+  ["form","動詞","形成する","fɔːm","Form a cross-functional team.","ビジネス"],
+  ["core","名詞","核心","kɔːr","Focus on core competencies.","ビジネス"],
+  ["firm","形容詞","確固とした","fɜːm","Be firm in your decisions.","ビジネス"],
+  ["hire","動詞","雇用する","haɪər","Hire for attitude, train for skill.","ビジネス"],
+  ["overcome","動詞","克服する","ˌəʊvəˈkʌm","She overcame many obstacles.","日常"],
+  ["role","名詞","役割","rəʊl","Define each person\'s role clearly.","ビジネス"],
+  ["void","名詞","空白・無効","vɔɪd","The contract was declared void.","ビジネス"],
+  ["available","形容詞","利用可能な","əˈveɪləbəl","Rooms are available next week.","日常"],
+  ["overwhelm","動詞","圧倒する","ˌəʊvəˈwelm","Don\'t let tasks overwhelm you.","日常"],
+  ["versatile","形容詞","多才な","ˈvɜːsətaɪl","She is a versatile engineer.","日常"],
+  ["important","形容詞","重要な","ɪmˈpɔːtənt","Focus on what is important.","日常"],
+  ["introduce","動詞","紹介する","ˌɪntrəˈdjuːs","Introduce yourself clearly.","日常"],
+  ["situation","名詞","状況","ˌsɪtʃuˈeɪʃən","Assess the situation first.","日常"],
+  ["drive","動詞","運転する・促進する","draɪv","Drive to the office or drive innovation.","ビジネス"],
+  ["guide","動詞","案内する","ɡaɪd","Guide the team through changes.","ビジネス"],
+  ["scale","動詞","拡大する","skeɪl","Scale the business globally.","ビジネス"],
+  ["yield","動詞","生じる","jiːld","The investment yielded great returns.","ビジネス"],
+  ["phase","名詞","段階","feɪz","We are in the final phase.","ビジネス"],
+  ["track","動詞","追跡する","træk","Track progress weekly.","ビジネス"],
+  ["train","動詞","訓練する","treɪn","Train staff on new systems.","ビジネス"],
+  ["trade","名詞","取引","treɪd","Global trade is expanding.","ビジネス"],
+  ["found","動詞","設立する","faʊnd","Found a company with purpose.","ビジネス"],
+  ["chief","形容詞","主要な","tʃiːf","That is the chief concern.","ビジネス"],
+  ["cloud","名詞","クラウド","klaʊd","Store everything in the cloud.","ビジネス"],
+  ["contribute","動詞","貢献する","kənˈtrɪbjuːt","She contributed greatly to the team.","日常"],
+  ["transition","名詞","移行","trænˈzɪʃən","The transition to remote work was smooth.","日常"],
+  ["accessible","形容詞","アクセスしやすい","əkˈsesɪbəl","The building is fully accessible.","日常"],
+  ["accustomed","形容詞","慣れた","əˈkʌstəmd","He became accustomed to the cold.","日常"],
+  ["compassion","名詞","思いやり","kəmˈpæʃən","Show compassion to colleagues.","日常"],
+  ["intuition","名詞","直感","ˌɪntjʊˈɪʃən","Trust your intuition.","日常"],
+  ["volunteer","動詞","自発的に申し出る","ˌvɒlənˈtɪər","Volunteer for extra projects.","日常"],
+  ["afternoon","名詞","午後","ˌɑːftəˈnuːn","Schedule the call for the afternoon.","日常"],
+  ["draft","動詞","草案を書く","drɑːft","She drafted the proposal overnight.","ビジネス"],
+  ["close","動詞","閉じる","kləʊz","Close the deal by Friday.","ビジネス"],
+  ["serve","動詞","仕える","sɜːv","Serve the customer first.","ビジネス"],
+  ["store","動詞","保存する・蓄える","stɔːr","Store data securely in the cloud.","ビジネス"],
+  ["amend","動詞","修正する","əˈmend","They amended the contract terms.","ビジネス"],
+  ["asset","名詞","資産","ˈæset","Experience is a valuable asset.","ビジネス"],
+  ["surge","名詞","急増","sɜːdʒ","A surge in demand was recorded.","ビジネス"],
+  ["staff","名詞","スタッフ","stɑːf","Invest in your staff.","ビジネス"],
+  ["board","名詞","取締役会・板","bɔːd","Present to the board.","ビジネス"],
+  ["worthwhile","形容詞","価値がある","ˌwɜːθˈwaɪl","The effort was worthwhile.","日常"],
+  ["comparable","形容詞","匹敵する","ˈkɒmpərəbəl","Find a comparable product.","日常"],
+  ["exaggerate","動詞","誇張する","ɪɡˈzædʒəreɪt","Don\'t exaggerate the results.","日常"],
+  ["exhaustion","名詞","疲労困憊","ɪɡˈzɔːstʃən","Exhaustion set in after the race.","日常"],
+  ["hospitable","形容詞","親切な","hɒˈspɪtəbəl","They were very hospitable.","日常"],
+  ["precaution","名詞","予防措置","prɪˈkɔːʃən","Take precautions before the trip.","日常"],
+  ["resilience","名詞","回復力","rɪˈzɪlɪəns","Build emotional resilience.","日常"],
+  ["understand","動詞","理解する","ˌʌndəˈstænd","Understand the client\'s needs.","日常"],
+  ["atmosphere","名詞","雰囲気","ˈætməsfɪər","Create a productive atmosphere.","日常"],
+  ["offer","動詞","提供する","ˈɒfər","Offer a competitive price.","ビジネス"],
+  ["model","名詞","モデル・手本","ˈmɒdəl","She is a role model for the team.","ビジネス"],
+  ["value","名詞","価値","ˈvæljuː","Deliver real value to users.","ビジネス"],
+  ["visit","動詞","訪問する","ˈvɪzɪt","Visit the client on-site.","ビジネス"],
+  ["adopt","動詞","採用する","əˈdɒpt","We adopted a new strategy.","ビジネス"],
+  ["agile","形容詞","機敏な","ˈædʒaɪl","An agile team adapts quickly.","ビジネス"],
+  ["concentrate","動詞","集中する","ˈkɒnsəntreɪt","Please concentrate during the exam.","日常"],
+  ["acknowledge","動詞","認める","əkˈnɒlɪdʒ","Acknowledge your mistakes gracefully.","日常"],
+  ["investigate","動詞","調査する","ɪnˈvestɪɡeɪt","Police will investigate the incident.","日常"],
+  ["frustration","名詞","欲求不満","frʌˈstreɪʃən","Express frustration constructively.","日常"],
+  ["query","名詞","問い合わせ","ˈkwɪəri","Submit your query online.","ビジネス"],
+  ["comfortable","形容詞","快適な","ˈkʌmftəbəl","Create a comfortable workspace.","日常"],
+  ["interesting","形容詞","面白い","ˈɪntrəstɪŋ","Find an interesting angle.","日常"],
+  ["labor","名詞","労働","ˈleɪbər","Reduce manual labor.","ビジネス"],
+  ["trial","名詞","試験","ˈtraɪəl","Run a trial before committing.","ビジネス"],
+  ["cycle","名詞","サイクル","ˈsaɪkəl","Shorten the production cycle.","ビジネス"],
+  ["launch","動詞","発売する・開始する","lɔːntʃ","We launch the product next month.","ビジネス"],
+  ["create","動詞","作成する","kriˈeɪt","Create value for customers.","ビジネス"],
+  ["direct","形容詞","直接の・率直な","dɪˈrekt","Be direct in your feedback.","ビジネス"],
+  ["invest","動詞","投資する","ɪnˈvest","Invest in employee training.","ビジネス"],
+  ["sector","名詞","部門・分野","ˈsektər","She works in the public sector.","ビジネス"],
+  ["aspiration","名詞","志望","ˌæspɪˈreɪʃən","She shared her professional aspirations.","日常"],
+  ["deputy","名詞","代理","ˈdepjʊti","The deputy manager handled it.","ビジネス"],
+  ["enthusiasm","名詞","熱意","ɪnˈθjuːzɪæzəm","Show enthusiasm at work.","日常"],
+  ["offset","動詞","相殺する","ˈɒfset","Offset costs with savings.","ビジネス"],
+  ["optimistic","形容詞","楽観的な","ˌɒptɪˈmɪstɪk","She is optimistic about growth.","日常"],
+  ["access","動詞","アクセスする","ˈækses","Access the data remotely.","ビジネス"],
+  ["experience","名詞","経験","ɪkˈspɪərɪəns","Experience shapes judgment.","日常"],
+  ["growth","名詞","成長・増加","ɡrəʊθ","Plan for sustainable growth.","ビジネス"],
+  ["charge","動詞","請求する","tʃɑːdʒ","Charge a fair price.","ビジネス"],
+  ["branch","名詞","支店・分野","brɑːntʃ","The branch office opened.","ビジネス"],
+  ["individual","名詞","個人","ˌɪndɪˈvɪdʒuəl","Respect each individual.","日常"],
+  ["audit","名詞","監査","ˈɔːdɪt","An audit revealed discrepancies.","ビジネス"],
+  ["spontaneous","形容詞","自発的な","spɒnˈteɪnɪəs","A spontaneous idea emerged.","日常"],
+  ["unify","動詞","統一する","ˈjuːnɪfaɪ","Unify different departments.","ビジネス"],
+  ["total","名詞","合計","ˈtəʊtəl","Check the total figures.","ビジネス"],
+  ["owner","名詞","オーナー","ˈəʊnər","Every employee should think like an owner.","ビジネス"],
+  ["environment","名詞","環境","ɪnˈvaɪrənmənt","Create a healthy work environment.","日常"],
+  ["immediately","副詞","すぐに","ɪˈmiːdɪətli","Respond immediately to urgent issues.","日常"],
+  ["design","動詞","設計する","dɪˈzaɪn","Design user-friendly systems.","ビジネス"],
+  ["engage","動詞","関与する","ɪnˈɡeɪdʒ","Engage customers early.","ビジネス"],
+  ["impact","名詞","影響","ˈɪmpækt","Measure the business impact.","ビジネス"],
+  ["profit","名詞","利益","ˈprɒfɪt","Maximize long-term profit.","ビジネス"],
+  ["system","名詞","システム","ˈsɪstəm","Build a reliable system.","ビジネス"],
+  ["agenda","名詞","議題","əˈdʒendə","The meeting agenda was distributed.","ビジネス"],
+  ["annual","形容詞","年次の","ˈænjuəl","The annual report is due Friday.","ビジネス"],
+  ["assign","動詞","割り当てる","əˈsaɪn","Tasks were assigned to each member.","TOEIC"],
+  ["budget","名詞","予算","ˈbʌdʒɪt","Stay within the project budget.","ビジネス"],
+  ["comply","動詞","従う","kəmˈplaɪ","All employees must comply with policy.","ビジネス"],
+  ["exceed","動詞","超える","ɪkˈsiːd","Sales exceeded the target.","TOEIC"],
+  ["expand","動詞","拡大する","ɪkˈspænd","The company plans to expand.","ビジネス"],
+  ["export","動詞","輸出する","ˈekspɔːt","Japan exports many electronic goods.","ビジネス"],
+  ["obtain","動詞","入手する","əbˈteɪn","Obtain all necessary permits.","TOEIC"],
+  ["policy","名詞","方針・政策","ˈpɒlɪsi","The company updated its leave policy.","ビジネス"],
+  ["retain","動詞","保持する","rɪˈteɪn","Retain top talent at all costs.","ビジネス"],
+  ["verify","動詞","確認する","ˈverɪfaɪ","Verify all data before reporting.","TOEIC"],
+  ["vision","名詞","ビジョン","ˈvɪʒən","Share the company vision clearly.","ビジネス"],
+  ["foster","動詞","育む","ˈfɒstər","Foster a culture of innovation.","ビジネス"],
+  ["hamper","動詞","妨げる","ˈhæmpər","Red tape can hamper progress.","ビジネス"],
+  ["nimble","形容詞","機敏な","ˈnɪmbəl","Stay nimble in a changing market.","ビジネス"],
+  ["refine","動詞","洗練させる","rɪˈfaɪn","Refine the proposal further.","ビジネス"],
+  ["stable","形容詞","安定した","ˈsteɪbəl","Keep the economy stable.","ビジネス"],
+  ["tactic","名詞","戦術","ˈtæktɪk","Choose the right tactic.","ビジネス"],
+  ["unveil","動詞","発表する","ʌnˈveɪl","The company unveiled a new product.","ビジネス"],
+  ["handle","動詞","処理する","ˈhændəl","Handle complaints professionally.","ビジネス"],
+  ["manage","動詞","管理する","ˈmænɪdʒ","Manage your time wisely.","ビジネス"],
+  ["client","名詞","クライアント","ˈklaɪənt","Put the client first.","ビジネス"],
+  ["leader","名詞","リーダー","ˈliːdər","Be the leader your team needs.","ビジネス"],
+  ["income","名詞","収入","ˈɪnkʌm","Grow your income over time.","ビジネス"],
+  ["supply","動詞","供給する","səˈplaɪ","Supply the market with value.","ビジネス"],
+  ["crisis","名詞","危機","ˈkraɪsɪs","Handle the crisis calmly.","ビジネス"],
+  ["status","名詞","状況・地位","ˈsteɪtəs","Check the project status.","ビジネス"],
+  ["present","動詞","発表する","prɪˈzent","Present data visually.","ビジネス"],
+  ["project","名詞","プロジェクト","ˈprɒdʒekt","Deliver the project on time.","ビジネス"],
+  ["appropriate","形容詞","適切な","əˈprəʊprɪɪt","Please wear appropriate attire.","日常"],
+  ["opportunity","名詞","機会","ˌɒpəˈtjuːnɪti","This is a great career opportunity.","日常"],
+  ["participate","動詞","参加する","pɑːˈtɪsɪpeɪt","Everyone must participate actively.","日常"],
+  ["coincidence","名詞","偶然の一致","kəʊˈɪnsɪdəns","It was a remarkable coincidence.","日常"],
+  ["penalty","名詞","罰則","ˈpenəlti","There is a penalty for late payment.","ビジネス"],
+  ["segment","名詞","部分・区分","ˈseɡmənt","Target a specific market segment.","ビジネス"],
+  ["suspend","動詞","一時停止する","səˈspend","Suspend the project temporarily.","ビジネス"],
+  ["venture","名詞","冒険的企業","ˈventʃər","Launch a joint venture.","ビジネス"],
+  ["content","名詞","内容","ˈkɒntent","Create valuable content.","ビジネス"],
+  ["information","名詞","情報","ˌɪnfəˈmeɪʃən","Share information openly.","日常"],
+  ["record","動詞","記録する","rɪˈkɔːd","Record all decisions made.","ビジネス"],
+  ["report","動詞","報告する","rɪˈpɔːt","Report progress weekly.","ビジネス"],
+  ["return","動詞","戻る","rɪˈtɜːn","Return on investment matters.","ビジネス"],
+  ["secure","動詞","確保する","sɪˈkjʊər","Secure funding before starting.","ビジネス"],
+  ["update","動詞","更新する","ˌʌpˈdeɪt","Update the system regularly.","ビジネス"],
+  ["deploy","動詞","展開する","dɪˈplɔɪ","The new software was deployed.","ビジネス"],
+  ["employ","動詞","雇用する","ɪmˈplɔɪ","They employ over 500 people.","ビジネス"],
+  ["ensure","動詞","確保する","ɪnˈʃʊər","Ensure data is backed up daily.","ビジネス"],
+  ["global","形容詞","世界的な","ˈɡləʊbəl","Global trade is increasing.","ビジネス"],
+  ["target","名詞","目標","ˈtɑːɡɪt","Set a realistic sales target.","ビジネス"],
+  ["divert","動詞","そらす・転換する","daɪˈvɜːt","Divert funds to R&D.","ビジネス"],
+  ["morale","名詞","士気","məˈrɑːl","Boost team morale.","ビジネス"],
+  ["robust","形容詞","強固な","rəʊˈbʌst","Build a robust system.","ビジネス"],
+  ["uphold","動詞","支持する・維持する","ʌpˈhəʊld","Uphold the company values.","ビジネス"],
+  ["viable","形容詞","実行可能な","ˈvaɪəbəl","Is this a viable option?","ビジネス"],
+  ["market","名詞","市場","ˈmɑːkɪt","Understand the market well.","ビジネス"],
+  ["relationship","名詞","関係","rɪˈleɪʃənʃɪp","Build strong relationships.","日常"],
+  ["demand","名詞","需要","dɪˈmɑːnd","Demand for talent is high.","ビジネス"],
+  ["particularly","副詞","特に","pəˈtɪkjʊləli","Pay attention particularly to detail.","日常"],
+  ["senior","形容詞","上位の","ˈsiːnɪər","Consult the senior team.","ビジネス"],
+  ["survey","名詞","調査","ˈsɜːveɪ","Conduct a customer survey.","ビジネス"],
+  ["contact","動詞","連絡する","ˈkɒntækt","Contact the supplier directly.","ビジネス"],
+  ["quality","名詞","品質","ˈkwɒlɪti","Never compromise on quality.","ビジネス"],
+  ["release","動詞","リリースする","rɪˈliːs","Release the update next week.","ビジネス"],
+  ["absence","名詞","不在・欠席","ˈæbsəns","Her absence was noted at the meeting.","TOEIC"],
+  ["conduct","動詞","行う","ˈkɒndʌkt","They conducted a survey last month.","TOEIC"],
+  ["decline","動詞","減少する・断る","dɪˈklaɪn","Sales declined in Q3.","TOEIC"],
+  ["deficit","名詞","赤字・不足","ˈdefɪsɪt","The company faces a budget deficit.","ビジネス"],
+  ["execute","動詞","実行する","ˈeksɪkjuːt","Execute the plan as agreed.","ビジネス"],
+  ["finance","動詞","資金調達する","ˈfaɪnæns","The project was financed by grants.","ビジネス"],
+  ["insight","名詞","洞察","ˈɪnsaɪt","She provided valuable insights.","ビジネス"],
+  ["network","名詞","ネットワーク","ˈnetwɜːk","Build a strong professional network.","ビジネス"],
+  ["outline","動詞","概説する","ˈaʊtlaɪn","Outline your key proposals.","ビジネス"],
+  ["resolve","動詞","解決する","rɪˈzɒlv","Resolve conflicts quickly.","ビジネス"],
+  ["revenue","名詞","収益","ˈrevɪnjuː","Revenue grew by 20% this year.","ビジネス"],
+  ["disrupt","動詞","混乱させる","dɪsˈrʌpt","Technology can disrupt industries.","ビジネス"],
+  ["rivalry","名詞","競争・ライバル関係","ˈraɪvəlri","Healthy rivalry improves performance.","ビジネス"],
+  ["solvent","形容詞","支払い能力のある","ˈsɒlvənt","The company remains solvent.","ビジネス"],
+  ["produce","動詞","生産する","prəˈdjuːs","Produce quality work consistently.","ビジネス"],
+  ["account","名詞","口座・アカウント","əˈkaʊnt","Create an account to get started.","ビジネス"],
+  ["product","名詞","製品","ˈprɒdʌkt","Build a product users love.","ビジネス"],
+  ["attract","動詞","引き付ける","əˈtrækt","Attract top talent.","ビジネス"],
+  ["channel","名詞","チャンネル・経路","ˈtʃænəl","Choose the right communication channel.","ビジネス"],
+  ["company","名詞","会社","ˈkʌmpəni","Join a company you believe in.","ビジネス"],
+  ["notify","動詞","通知する","ˈnəʊtɪfaɪ","Notify all staff of the change.","TOEIC"],
+  ["considerable","形容詞","かなりの","kənˈsɪdərəbəl","She has considerable experience.","日常"],
+  ["deadline","名詞","締め切り","ˈdedlaɪn","Don\'t miss the project deadline.","ビジネス"],
+  ["prospect","名詞","見込み","ˈprɒspekt","The business prospect looks bright.","ビジネス"],
+  ["control","動詞","管理する","kənˈtrəʊl","Control quality at every step.","ビジネス"],
+  ["deliver","動詞","届ける・達成する","dɪˈlɪvər","Deliver results on schedule.","ビジネス"],
+  ["abandon","動詞","放棄する","əˈbændən","She decided to abandon the project.","TOEIC"],
+  ["acquire","動詞","取得する","əˈkwaɪər","They acquired a new company last year.","TOEIC"],
+  ["economy","名詞","経済","ɪˈkɒnəmi","The global economy is recovering.","ビジネス"],
+  ["enhance","動詞","強化する","ɪnˈhɑːns","This update enhances performance.","TOEIC"],
+  ["monitor","動詞","監視する","ˈmɒnɪtər","Monitor the project\'s progress.","ビジネス"],
+  ["utilize","動詞","活用する","ˈjuːtɪlaɪz","Utilize all available tools.","ビジネス"],
+  ["dynamic","形容詞","ダイナミックな","daɪˈnæmɪk","The market is highly dynamic.","ビジネス"],
+  ["archive","名詞","アーカイブ","ˈɑːkaɪv","Store old files in the archive.","ビジネス"],
+  ["conform","動詞","従う","kənˈfɔːm","Conform to the company\'s standards.","ビジネス"],
+  ["empower","動詞","力を与える","ɪmˈpaʊər","Empower employees to decide.","ビジネス"],
+  ["mediate","動詞","調停する","ˈmiːdɪeɪt","A lawyer will mediate the dispute.","ビジネス"],
+  ["partner","名詞","パートナー","ˈpɑːtnər","Choose a reliable partner.","ビジネス"],
+  ["service","名詞","サービス","ˈsɜːvɪs","Deliver excellent service.","ビジネス"],
+  ["operate","動詞","運営する","ˈɒpəreɪt","Operate with full transparency.","ビジネス"],
+  ["quarter","名詞","四半期","ˈkwɔːtər","Review results each quarter.","ビジネス"],
+  ["appraise","動詞","評価する","əˈpreɪz","The manager appraised each employee.","ビジネス"],
+  ["contract","名詞","契約","ˈkɒntrækt","Sign the contract before Friday.","ビジネス"],
+  ["currency","名詞","通貨","ˈkʌrənsi","The currency exchange rate changed.","ビジネス"],
+  ["delegate","動詞","委任する","ˈdelɪɡeɪt","Managers should delegate tasks.","ビジネス"],
+  ["estimate","動詞","見積もる","ˈestɪmeɪt","Estimate the total cost carefully.","TOEIC"],
+  ["generate","動詞","生み出す","ˈdʒenəreɪt","The campaign generated interest.","TOEIC"],
+  ["leverage","動詞","活用する","ˈlevərɪdʒ","Leverage your network effectively.","ビジネス"],
+  ["maintain","動詞","維持する","meɪnˈteɪn","Maintain accurate records.","TOEIC"],
+  ["strategy","名詞","戦略","ˈstrætɪdʒi","Develop a long-term strategy.","ビジネス"],
+  ["assemble","動詞","集める・組み立てる","əˈsembəl","Assemble the team by Monday.","ビジネス"],
+  ["momentum","名詞","勢い","məˈmentəm","Build momentum in the campaign.","ビジネス"],
+  ["seamless","形容詞","シームレスな","ˈsiːmləs","Ensure a seamless transition.","ビジネス"],
+  ["increase","動詞","増やす","ɪnˈkriːs","Increase efficiency step by step.","ビジネス"],
+  ["response","名詞","返答","rɪˈspɒns","A fast response builds trust.","ビジネス"],
+  ["campaign","名詞","キャンペーン","kæmˈpeɪn","Launch a marketing campaign.","ビジネス"],
+  ["industry","名詞","産業","ˈɪndəstri","Know your industry inside out.","ビジネス"],
+  ["auditor","名詞","監査役","ˈɔːdɪtər","An auditor reviewed the accounts.","ビジネス"],
+  ["durable","形容詞","耐久性のある","ˈdjʊərəbəl","Choose durable materials.","ビジネス"],
+  ["virtual","形容詞","仮想の","ˈvɜːtʃʊəl","Hold virtual meetings.","ビジネス"],
+  ["indispensable","形容詞","不可欠な","ˌɪndɪˈspensəbəl","Communication is indispensable.","日常"],
+  ["transfer","動詞","移す","trænsˈfɜːr","Transfer the files securely.","ビジネス"],
+  ["accurate","形容詞","正確な","ˈækjərɪt","The report must be accurate.","ビジネス"],
+  ["adequate","形容詞","十分な","ˈædɪkwɪt","The budget was barely adequate.","ビジネス"],
+  ["adjacent","形容詞","隣接した","əˈdʒeɪsənt","The office is adjacent to the station.","TOEIC"],
+  ["allocate","動詞","割り当てる","ˈæləkeɪt","Resources were allocated efficiently.","ビジネス"],
+  ["capacity","名詞","容量・能力","kəˈpæsɪti","The factory operates at full capacity.","TOEIC"],
+  ["disclose","動詞","開示する","dɪsˈkləʊz","The CEO disclosed new plans.","ビジネス"],
+  ["document","動詞","記録する","ˈdɒkjʊmənt","Document all meeting decisions.","ビジネス"],
+  ["feasible","形容詞","実行可能な","ˈfiːzɪbəl","Is this plan feasible?","ビジネス"],
+  ["maximize","動詞","最大化する","ˈmæksɪmaɪz","Maximize profits while cutting costs.","ビジネス"],
+  ["minimize","動詞","最小化する","ˈmɪnɪmaɪz","Minimize risk in the process.","ビジネス"],
+  ["optimize","動詞","最適化する","ˈɒptɪmaɪz","Optimize the code for speed.","ビジネス"],
+  ["resource","名詞","資源","ˈriːsɔːs","Allocate resources wisely.","ビジネス"],
+  ["simplify","動詞","単純化する","ˈsɪmplɪfaɪ","Simplify the onboarding process.","ビジネス"],
+  ["teamwork","名詞","チームワーク","ˈtiːmwɜːk","Teamwork makes projects succeed.","ビジネス"],
+  ["decisive","形容詞","決断力のある","dɪˈsaɪsɪv","A decisive leader acts quickly.","ビジネス"],
+  ["tangible","形容詞","有形の","ˈtændʒɪbəl","Show tangible results.","ビジネス"],
+  ["withhold","動詞","保留する","wɪðˈhəʊld","Don\'t withhold critical information.","ビジネス"],
+  ["customer","名詞","顧客","ˈkʌstəmər","The customer is always first.","ビジネス"],
+  ["colleague","名詞","同僚","ˈkɒliːɡ","She consulted her colleague.","ビジネス"],
+  ["guideline","名詞","指針","ˈɡaɪdlaɪn","Follow safety guidelines strictly.","ビジネス"],
+  ["implement","動詞","実施する","ˈɪmplɪment","Implement the new policy now.","ビジネス"],
+  ["incentive","名詞","インセンティブ","ɪnˈsentɪv","Bonuses are a common incentive.","ビジネス"],
+  ["objective","名詞","目標","əbˈdʒektɪv","State your objective clearly.","ビジネス"],
+  ["benchmark","名詞","基準点","ˈbentʃmɑːk","Set a performance benchmark.","ビジネス"],
+  ["designate","動詞","指定する","ˈdezɪɡneɪt","Designate a project leader.","ビジネス"],
+  ["grievance","名詞","不満・苦情","ˈɡriːvəns","Address employee grievances.","ビジネス"],
+  ["integrity","名詞","誠実さ","ɪnˈteɡrɪti","Act with integrity at all times.","ビジネス"],
+  ["recession","名詞","景気後退","rɪˈseʃən","A recession hit the economy.","ビジネス"],
+  ["successor","名詞","後継者","səkˈsesər","Groom a capable successor.","ビジネス"],
+  ["complaint","名詞","苦情","kəmˈpleɪnt","Handle every complaint professionally.","ビジネス"],
+  ["oversee","動詞","監督する","ˌəʊvəˈsiː","She oversees the entire project.","ビジネス"],
+  ["clarification","名詞","明確化","ˌklærɪfɪˈkeɪʃən","She asked for clarification.","日常"],
+  ["forecast","動詞","予測する","ˈfɔːkɑːst","Analysts forecast growth this year.","ビジネス"],
+  ["initiate","動詞","開始する","ɪˈnɪʃɪeɪt","They initiated the negotiation.","ビジネス"],
+  ["overview","名詞","概要","ˈəʊvəvjuː","Give an overview of the project.","ビジネス"],
+  ["proposal","名詞","提案","prəˈpəʊzəl","Submit a proposal by Thursday.","ビジネス"],
+  ["reliable","形容詞","信頼できる","rɪˈlaɪəbəl","We need a reliable supplier.","ビジネス"],
+  ["cite","動詞","引用する","saɪt","Always cite your sources.","学術"],
+  ["external","形容詞","外部の","ɪkˈstɜːnəl","Consult an external auditor.","ビジネス"],
+  ["outdated","形容詞","時代遅れの","ˌaʊtˈdeɪtɪd","The system is outdated.","ビジネス"],
+  ["workload","名詞","仕事量","ˈwɜːkləʊd","Manage your workload effectively.","ビジネス"],
+  ["internal","形容詞","内部の","ɪnˈtɜːnəl","Handle internal issues privately.","ビジネス"],
+  ["calculate","動詞","計算する","ˈkælkjʊleɪt","Calculate the total expenses.","数学"],
+  ["integrate","動詞","統合する","ˈɪntɪɡreɪt","Integrate all data into one system.","ビジネス"],
+  ["logistics","名詞","物流","ləˈdʒɪstɪks","Manage logistics for the event.","ビジネス"],
+  ["procedure","名詞","手順","prəˈsiːdʒər","Follow the standard procedure.","ビジネス"],
+  ["commodity","名詞","商品","kəˈmɒdɪti","Oil is a vital global commodity.","ビジネス"],
+  ["competent","形容詞","有能な","ˈkɒmpɪtənt","Hire a competent project manager.","ビジネス"],
+  ["allowance","名詞","手当・許容量","əˈlaʊəns","A travel allowance was provided.","ビジネス"],
+  ["lucrative","形容詞","利益になる","ˈluːkrətɪv","It is a lucrative market.","ビジネス"],
+  ["milestone","名詞","節目・里程標","ˈmaɪlstəʊn","Celebrate each project milestone.","ビジネス"],
+  ["redundant","形容詞","冗長な・余剰の","rɪˈdʌndənt","Remove redundant steps.","ビジネス"],
+  ["transform","動詞","変革する","trænsˈfɔːm","Technology transforms industries.","ビジネス"],
+  ["efficient","形容詞","効率的な","ɪˈfɪʃənt","Build an efficient workflow.","ビジネス"],
+  ["financial","形容詞","財務の","faɪˈnænʃəl","Review the financial report.","ビジネス"],
+  ["hence","副詞","それゆえ","hens","Hence, we need a new plan.","学術"],
+  ["inspection","名詞","検査","ɪnˈspekʃən","A safety inspection is required.","TOEIC"],
+  ["discretion","名詞","裁量","dɪˈskreʃən","Use your discretion carefully.","ビジネス"],
+  ["enterprise","名詞","企業・事業","ˈentəpraɪz","A new enterprise was launched.","ビジネス"],
+  ["jeopardize","動詞","危険にさらす","ˈdʒepədaɪz","Don\'t jeopardize the deal.","ビジネス"],
+  ["specialize","動詞","専門とする","ˈspeʃəlaɪz","Specialize in data science.","ビジネス"],
+  ["streamline","動詞","効率化する","ˈstriːmlaɪn","Streamline the approval process.","ビジネス"],
+  ["vary","動詞","変化する","ˈveəri","Results vary by region.","学術"],
+  ["norm","名詞","規範・標準","nɔːm","Challenge outdated norms.","学術"],
+  ["responsibility","名詞","責任","rɪˌspɒnsɪˈbɪlɪti","Take full responsibility.","日常"],
+  ["coin","動詞","造語する","kɔɪn","He coined the term.","学術"],
+  ["authorize","動詞","認可する","ˈɔːθəraɪz","The manager authorized the purchase.","TOEIC"],
+  ["eliminate","動詞","排除する","ɪˈlɪmɪneɪt","We must eliminate unnecessary steps.","TOEIC"],
+  ["hierarchy","名詞","階層構造","ˈhaɪərɑːki","Understand the company hierarchy.","ビジネス"],
+  ["terminate","動詞","終了させる","ˈtɜːmɪneɪt","The contract was terminated early.","ビジネス"],
+  ["arbitrate","動詞","仲裁する","ˈɑːbɪtreɪt","A neutral party will arbitrate.","ビジネス"],
+  ["expertise","名詞","専門知識","ˌekspɜːˈtiːz","His expertise was invaluable.","ビジネス"],
+  ["harmonize","動詞","調和させる","ˈhɑːmənaɪz","Harmonize regulations across regions.","ビジネス"],
+  ["prototype","名詞","試作品","ˈprəʊtətaɪp","Build and test a prototype.","ビジネス"],
+  ["turbulent","形容詞","波乱の","ˈtɜːbjʊlənt","Navigate turbulent markets.","ビジネス"],
+  ["prove","動詞","証明する","pruːv","Prove your hypothesis.","学術"],
+  ["cease","動詞","停止する","siːs","Production will cease on Friday.","TOEFL"],
+  ["crude","形容詞","粗削りな・原油の","kruːd","Crude oil prices fluctuated.","学術"],
+  ["straightforward","形容詞","率直な","ˌstreɪtˈfɔːwəd","The instructions are straightforward.","日常"],
+  ["wield","動詞","振るう","wiːld","Wield authority responsibly.","学術"],
+  ["accelerate","動詞","加速する","əkˈseləreɪt","We need to accelerate production.","ビジネス"],
+  ["accomplish","動詞","達成する","əˈkɒmplɪʃ","She accomplished her goals on time.","TOEIC"],
+  ["compensate","動詞","補償する","ˈkɒmpənseɪt","They compensated him for overtime.","TOEIC"],
+  ["distribute","動詞","配布する","dɪˈstrɪbjuːt","Brochures were distributed freely.","TOEIC"],
+  ["productive","形容詞","生産的な","prəˈdʌktɪv","Hold a productive meeting.","ビジネス"],
+  ["commission","名詞","委員会・手数料","kəˈmɪʃən","A commission reviewed the evidence.","ビジネス"],
+  ["commitment","名詞","取り組み・約束","kəˈmɪtmənt","Show commitment to quality.","ビジネス"],
+  ["competence","名詞","能力・資格","ˈkɒmpɪtəns","Demonstrate core competences.","ビジネス"],
+  ["pledge","動詞","誓約する","pledʒ","Pledge to reduce carbon emissions.","学術"],
+  ["proficient","形容詞","熟練した","prəˈfɪʃənt","She is proficient in Python.","ビジネス"],
+  ["conference","名詞","会議・会議","ˈkɒnfərəns","Attend the annual conference.","ビジネス"],
+  ["data","名詞","データ","ˈdeɪtə","Back every claim with data.","学術"],
+  ["bias","名詞","偏見","ˈbaɪəs","Avoid bias in your research.","学術"],
+  ["omit","動詞","省略する","əˈmɪt","Do not omit important details.","学術"],
+  ["emit","動詞","排出する","ɪˈmɪt","Factories emit greenhouse gases.","学術"],
+  ["overhaul","動詞","全面的に改訂する","ˌəʊvəˈhɔːl","Overhaul the existing policy.","ビジネス"],
+  ["negotiate","動詞","交渉する","nɪˈɡəʊʃɪeɪt","We need to negotiate the contract.","ビジネス"],
+  ["cooperate","動詞","協力する","kəʊˈɒpəreɪt","Teams must cooperate effectively.","ビジネス"],
+  ["credentials","名詞","資格・信任状","krɪˈdenʃəlz","Provide your credentials to login.","ビジネス"],
+  ["grant","動詞","認める・授与する","ɡrɑːnt","The university granted her a scholarship.","学術"],
+  ["probe","動詞","詳しく調べる","prəʊb","Scientists probed the issue deeply.","学術"],
+  ["annex","動詞","併合する","əˈneks","The country annexed the territory.","学術"],
+  ["anticipate","動詞","予期する","ænˈtɪsɪpeɪt","We anticipate strong demand.","TOEIC"],
+  ["innovative","形容詞","革新的な","ˈɪnəveɪtɪv","They launched an innovative product.","ビジネス"],
+  ["compatible","形容詞","互換性のある","kəmˈpætɪbəl","Check if the software is compatible.","ビジネス"],
+  ["remunerate","動詞","報酬を払う","rɪˈmjuːnəreɪt","Remunerate staff fairly.","ビジネス"],
+  ["reputation","名詞","評判","ˌrepjʊˈteɪʃən","Protect the company\'s reputation.","ビジネス"],
+  ["transparent","形容詞","透明な","trænsˈpærənt","Be transparent with your team.","ビジネス"],
+  ["valid","形容詞","有効な","ˈvælɪd","Make a valid argument.","学術"],
+  ["acute","形容詞","鋭い・深刻な","əˈkjuːt","She has an acute sense of logic.","TOEFL"],
+  ["lucid","形容詞","明快な","ˈluːsɪd","Give a lucid explanation.","TOEFL"],
+  ["novel","形容詞","新しい","ˈnɒvəl","A novel approach was proposed.","学術"],
+  ["contingency","名詞","不測の事態","kənˈtɪndʒənsi","Plan for every contingency.","ビジネス"],
+  ["imply","動詞","暗示する","ɪmˈplaɪ","What does this data imply?","学術"],
+  ["predecessor","名詞","前任者","ˈpriːdɪsesər","Learn from your predecessor.","ビジネス"],
+  ["restriction","名詞","制限","rɪˈstrɪkʃən","Ease trade restrictions.","ビジネス"],
+  ["standardize","動詞","標準化する","ˈstændədaɪz","Standardize the reporting format.","ビジネス"],
+  ["effect","名詞","効果","ɪˈfekt","Measure the effect precisely.","学術"],
+  ["innovation","名詞","革新","ˌɪnəˈveɪʃən","Innovation drives economic growth.","ビジネス"],
+  ["assess","動詞","評価・査定する","əˈses","Assess the risk before deciding.","学術"],
+  ["initiative","名詞","主導権・計画","ɪˈnɪʃɪətɪv","Launch a new sustainability initiative.","ビジネス"],
+  ["obligation","名詞","義務","ˌɒblɪˈɡeɪʃən","Meet your contractual obligations.","ビジネス"],
+  ["zenith","名詞","絶頂","ˈzenɪθ","She reached the zenith of her career.","学術"],
+  ["method","名詞","方法","ˈmeθəd","Choose the most effective method.","学術"],
+  ["approximate","形容詞","おおよその","əˈprɒksɪmɪt","The approximate cost is $500.","TOEIC"],
+  ["consolidate","動詞","統合する","kənˈsɒlɪdeɪt","The firms consolidated their assets.","ビジネス"],
+  ["stakeholder","名詞","利害関係者","ˈsteɪkhəʊldər","Engage all stakeholders early.","ビジネス"],
+  ["collaborate","動詞","協力する","kəˈlæbəreɪt","Collaborate with other departments.","ビジネス"],
+  ["counterpart","名詞","対応する人・物","ˈkaʊntəpɑːt","Meet your foreign counterpart.","ビジネス"],
+  ["evoke","動詞","呼び起こす","ɪˈvəʊk","The photo evoked old memories.","TOEFL"],
+  ["fluctuation","名詞","変動","ˌflʌktʃuˈeɪʃən","Watch currency fluctuation.","ビジネス"],
+  ["infer","動詞","推論する","ɪnˈfɜːr","Infer the meaning from context.","学術"],
+  ["define","動詞","定義する","dɪˈfaɪn","Define the problem precisely.","学術"],
+  ["relate","動詞","関連させる","rɪˈleɪt","Relate new info to old.","学術"],
+  ["alteration","名詞","変更","ˌɔːltəˈreɪʃən","Minor alterations improved the design.","TOEIC"],
+  ["attain","動詞","達成する","əˈteɪn","She attained the highest score.","TOEFL"],
+  ["coordinate","動詞","調整・連携する","kəʊˈɔːdɪneɪt","She coordinates all meetings.","ビジネス"],
+  ["derive","動詞","引き出す","dɪˈraɪv","We derive pleasure from learning.","学術"],
+  ["evolve","動詞","進化する","ɪˈvɒlv","Business models continue to evolve.","学術"],
+  ["reveal","動詞","明らかにする","rɪˈviːl","The survey revealed key insights.","学術"],
+  ["baffle","動詞","困惑させる","ˈbæfəl","The complex math problem baffled her.","TOEFL"],
+  ["deduce","動詞","推論する","dɪˈdjuːs","Deduce the answer from clues.","学術"],
+  ["depict","動詞","描く","dɪˈpɪkt","The painting depicts rural life.","TOEFL"],
+  ["devise","動詞","考案する","dɪˈvaɪz","Devise a plan to meet the deadline.","TOEFL"],
+  ["domain","名詞","分野・領域","dəˈmeɪn","She excels in her domain.","学術"],
+  ["immune","形容詞","免疫のある","ɪˈmjuːn","The body becomes immune to the virus.","学術"],
+  ["refute","動詞","論駁する","rɪˈfjuːt","She refuted his argument.","学術"],
+  ["subtle","形容詞","微妙な","ˈsʌtəl","Note the subtle differences.","TOEFL"],
+  ["abrupt","形容詞","突然の","əˈbrʌpt","There was an abrupt change in tone.","TOEFL"],
+  ["arouse","動詞","呼び起こす","əˈraʊz","The speech aroused curiosity.","TOEFL"],
+  ["candid","形容詞","率直な","ˈkændɪd","She gave a candid assessment.","TOEFL"],
+  ["consistently","副詞","一貫して","kənˈsɪstəntli","He consistently meets deadlines.","ビジネス"],
+  ["impede","動詞","妨げる","ɪmˈpiːd","Bureaucracy impedes innovation.","TOEFL"],
+  ["induce","動詞","引き起こす","ɪnˈdjuːs","Stress can induce illness.","学術"],
+  ["influx","名詞","流入","ˈɪnflʌks","An influx of tourists arrived.","学術"],
+  ["innate","形容詞","生来の","ɪˈneɪt","She has an innate talent.","TOEFL"],
+  ["latent","形容詞","潜在的な","ˈleɪtənt","There is latent demand.","学術"],
+  ["debate","名詞","討論","dɪˈbeɪt","Open the debate to the team.","学術"],
+  ["application","名詞","応用・申請","ˌæplɪˈkeɪʃən","Submit your application by Monday.","TOEIC"],
+  ["complex","形容詞","複雑な","ˈkɒmpleks","The problem is highly complex.","学術"],
+  ["measure","動詞","測定する","ˈmeʒər","Measure success with clear KPIs.","学術"],
+  ["brevity","名詞","簡潔さ","ˈbrevɪti","Brevity is the soul of wit.","TOEFL"],
+  ["contend","動詞","主張する","kənˈtend","She contends the data is flawed.","TOEFL"],
+  ["premise","名詞","前提","ˈpremɪs","The argument\'s premise is flawed.","学術"],
+  ["remnant","名詞","残余","ˈremnənt","Remnants of the old wall still stand.","TOEFL"],
+  ["essence","名詞","本質","ˈesəns","Grasp the essence of the issue.","学術"],
+  ["feasibility","名詞","実現可能性","ˌfiːzəˈbɪlɪti","Assess the project\'s feasibility.","ビジネス"],
+  ["subordinate","名詞","部下","səˈbɔːdɪnɪt","Support your subordinates.","ビジネス"],
+  ["zealous","形容詞","熱心な","ˈzeləs","He is a zealous advocate.","TOEFL"],
+  ["process","名詞","過程・プロセス","ˈprɒses","Improve the workflow process.","学術"],
+  ["competition","名詞","競争","ˌkɒmpɪˈtɪʃən","Stay ahead of the competition.","ビジネス"],
+  ["context","名詞","文脈","ˈkɒntekst","Always consider the context.","学術"],
+  ["liable","形容詞","責任がある","ˈlaɪəbəl","The company may be liable.","学術"],
+  ["accord","名詞","合意","əˈkɔːd","Both sides reached an accord.","学術"],
+  ["adhere","動詞","固守する","ədˈhɪər","Adhere to the safety protocol.","学術"],
+  ["assert","動詞","主張する","əˈsɜːt","The scientist asserted her findings.","学術"],
+  ["denote","動詞","示す・意味する","dɪˈnəʊt","This symbol denotes a warning.","学術"],
+  ["elicit","動詞","引き出す","ɪˈlɪsɪt","Good questions elicit useful responses.","学術"],
+  ["impose","動詞","課す","ɪmˈpəʊz","New taxes were imposed.","学術"],
+  ["concur","動詞","同意する","kənˈkɜːr","I concur with your assessment.","TOEFL"],
+  ["emerge","動詞","出現する","ɪˈmɜːdʒ","A new trend began to emerge.","学術"],
+  ["invoke","動詞","呼び起こす・援用する","ɪnˈvəʊk","Invoke the emergency clause.","学術"],
+  ["linear","形容詞","線形の","ˈlɪnɪər","Progress is not always linear.","学術"],
+  ["notion","名詞","概念","ˈnəʊʃən","Challenge that notion.","学術"],
+  ["ratify","動詞","批准する","ˈrætɪfaɪ","The treaty was ratified.","学術"],
+  ["nuance","名詞","細かい違い","ˈnjuːɑːns","Pay attention to every nuance.","学術"],
+  ["convene","動詞","召集する","kənˈviːn","The committee will convene Monday.","学術"],
+  ["corporation","名詞","企業","ˌkɔːrpəˈreɪʃən","The corporation expanded globally.","ビジネス"],
+  ["mandate","名詞","命令・権限","ˈmændeɪt","Act within your mandate.","学術"],
+  ["neutral","形容詞","中立の","ˈnjuːtrəl","Stay neutral in the debate.","学術"],
+  ["outcome","名詞","結果","ˈaʊtkʌm","The outcome was better than expected.","学術"],
+  ["publish","動詞","出版する","ˈpʌblɪʃ","Publish the findings in a journal.","学術"],
+  ["sustain","動詞","持続させる","səˈsteɪn","Sustain growth over the long term.","学術"],
+  ["concede","動詞","認める・譲歩する","kənˈsiːd","He conceded that he was wrong.","TOEFL"],
+  ["confine","動詞","限定する","kənˈfaɪn","Confine your remarks to the topic.","TOEFL"],
+  ["ethical","形容詞","倫理的な","ˈeθɪkəl","Ethical behavior builds trust.","学術"],
+  ["excerpt","名詞","抜粋","ˈeksɜːpt","Read the excerpt and summarize it.","TOEFL"],
+  ["extract","動詞","抽出する","ɪkˈstrækt","Extract the key data from the report.","学術"],
+  ["prevail","動詞","広まる・勝つ","prɪˈveɪl","Common sense should prevail.","TOEFL"],
+  ["primary","形容詞","主要な","ˈpraɪməri","Identify the primary objective.","学術"],
+  ["utilization","名詞","利用","ˌjuːtɪlaɪˈzeɪʃən","Improve utilization of resources.","ビジネス"],
+  ["whereas","接続詞","一方で","weərˈæz","He likes math, whereas she likes art.","学術"],
+  ["brittle","形容詞","もろい","ˈbrɪtəl","The material became brittle.","学術"],
+  ["deplete","動詞","使い果たす","dɪˈpliːt","Resources are being depleted.","学術"],
+  ["faculty","名詞","教員団・能力","ˈfækəlti","The faculty voted unanimously.","学術"],
+  ["fallacy","名詞","誤謬","ˈfæləsi","Identify the logical fallacy.","学術"],
+  ["secular","形容詞","世俗的な","ˈsekjʊlər","A secular government was established.","学術"],
+  ["subsidy","名詞","助成金","ˈsʌbsɪdi","Receive a government subsidy.","学術"],
+  ["suffice","動詞","十分である","səˈfaɪs","One example should suffice.","TOEFL"],
+  ["warrant","動詞","正当化する","ˈwɒrənt","The results warrant further study.","TOEFL"],
+  ["precise","形容詞","正確な","prɪˈsaɪs","Be precise with measurements.","学術"],
+  ["albeit","接続詞","〜であるが","ɔːlˈbiːɪt","The plan worked, albeit slowly.","TOEFL"],
+  ["commence","動詞","開始する","kəˈmens","The conference will commence at 9.","TOEFL"],
+  ["verification","名詞","検証","ˌverɪfɪˈkeɪʃən","Verification of identity is required.","ビジネス"],
+  ["dwelling","名詞","住居","ˈdwelɪŋ","They found a temporary dwelling.","学術"],
+  ["advance","動詞","前進する・進歩する","ədˈvɑːns","Technology continues to advance rapidly.","学術"],
+  ["adverse","形容詞","不利な・逆の","ˈædvɜːrs","Adverse weather affected the harvest.","TOEFL"],
+  ["analyze","動詞","分析する","ˈænəlaɪz","We analyzed the survey results.","学術"],
+  ["diverse","形容詞","多様な","daɪˈvɜːrs","The team has a diverse background.","学術"],
+  ["justify","動詞","正当化する","ˈdʒʌstɪfaɪ","Justify your spending decisions.","TOEFL"],
+  ["adamant","形容詞","断固とした","ˈædəmənt","He was adamant about his decision.","TOEFL"],
+  ["amplify","動詞","増幅する","ˈæmplɪfaɪ","Amplify the signal for better reception.","学術"],
+  ["analogy","名詞","類推","əˈnælədʒi","Use an analogy to explain it.","学術"],
+  ["anomaly","名詞","異常","əˈnɒməli","The anomaly in the data was surprising.","学術"],
+  ["exploit","動詞","活用する・搾取する","ɪkˈsplɔɪt","Exploit available resources wisely.","学術"],
+  ["isolate","動詞","孤立させる","ˈaɪsəleɪt","Isolate the variable in the experiment.","学術"],
+  ["nucleus","名詞","核","ˈnjuːklɪəs","The nucleus controls the cell.","学術"],
+  ["paradox","名詞","逆説","ˈpærədɒks","The statement is a paradox.","学術"],
+  ["pivotal","形容詞","極めて重要な","ˈpɪvɪtəl","This was a pivotal moment in history.","TOEFL"],
+  ["radical","形容詞","抜本的な","ˈrædɪkəl","A radical solution is needed.","学術"],
+  ["trivial","形容詞","些細な","ˈtrɪvɪəl","Don\'t focus on trivial matters.","TOEFL"],
+  ["abolish","動詞","廃止する","əˈbɒlɪʃ","The law was abolished last year.","学術"],
+  ["aquatic","形容詞","水生の","əˈkwætɪk","Aquatic life is rich in the tropics.","学術"],
+  ["distort","動詞","歪める","dɪˈstɔːt","Don\'t distort the facts.","学術"],
+  ["ecology","名詞","生態学","ɪˈkɒlədʒi","Study local ecology carefully.","学術"],
+  ["enforce","動詞","施行する","ɪnˈfɔːs","Enforce the rules consistently.","学術"],
+  ["habitat","名詞","生息地","ˈhæbɪtæt","Preserve the natural habitat.","学術"],
+  ["harness","動詞","活用する","ˈhɑːnɪs","Harness renewable energy.","学術"],
+  ["lateral","形容詞","横方向の","ˈlætərəl","Lateral thinking solves problems.","学術"],
+  ["obscure","形容詞","不明瞭な","əbˈskjʊər","The reference was obscure.","TOEFL"],
+  ["ominous","形容詞","不吉な","ˈɒmɪnəs","An ominous silence fell.","TOEFL"],
+  ["violate","動詞","違反する","ˈvaɪəleɪt","Don\'t violate the agreement.","学術"],
+  ["emphasis","名詞","強調","ˈemfəsɪs","Put emphasis on quality.","TOEFL"],
+  ["evidence","名詞","証拠","ˈevɪdəns","Provide evidence for your claim.","学術"],
+  ["flourish","動詞","繁栄する","ˈflʌrɪʃ","The business began to flourish.","学術"],
+  ["perceive","動詞","認識する","pəˈsiːv","How do customers perceive the brand?","学術"],
+  ["regulate","動詞","規制する","ˈreɡjʊleɪt","The government regulates the market.","学術"],
+  ["abstract","形容詞","抽象的な","ˈæbstrækt","Philosophy deals with abstract ideas.","TOEFL"],
+  ["fragment","名詞","断片","ˈfræɡmənt","Only a fragment of the data survived.","学術"],
+  ["manifest","動詞","明示する","ˈmænɪfest","The symptoms manifest differently.","学術"],
+  ["profound","形容詞","深い","prəˈfaʊnd","She has a profound understanding.","TOEFL"],
+  ["rhetoric","名詞","修辞法","ˈretərɪk","Political rhetoric can be misleading.","学術"],
+  ["scrutiny","名詞","精査","ˈskruːtɪni","The plan faced public scrutiny.","TOEFL"],
+  ["credible","形容詞","信頼できる","ˈkredɪbəl","Provide credible evidence.","学術"],
+  ["doctrine","名詞","教義・主義","ˈdɒktrɪn","The doctrine guided policy.","学術"],
+  ["eloquent","形容詞","雄弁な","ˈeləkwənt","She gave an eloquent speech.","TOEFL"],
+  ["fraction","名詞","一部・分数","ˈfrækʃən","Only a fraction of the data is useful.","学術"],
+  ["heritage","名詞","遺産","ˈherɪtɪdʒ","Protect cultural heritage.","学術"],
+  ["obstruct","動詞","妨害する","əbˈstrʌkt","Do not obstruct the process.","学術"],
+  ["temporal","形容詞","時間の","ˈtempərəl","Consider the temporal context.","学術"],
+  ["concrete","形容詞","具体的な","ˈkɒŋkriːt","Give concrete examples.","学術"],
+  ["uniform","形容詞","均一の","ˈjuːnɪfɔːm","Apply uniform standards.","学術"],
+  ["differentiate","動詞","区別する","ˌdɪfəˈrenʃɪeɪt","Differentiate your product.","ビジネス"],
+  ["advocate","動詞","提唱する","ˈædvəkeɪt","She advocates for climate action.","学術"],
+  ["apparent","形容詞","明らかな","əˈpærənt","The error was apparent immediately.","TOEFL"],
+  ["diminish","動詞","減少する","dɪˈmɪnɪʃ","The effect will diminish over time.","TOEFL"],
+  ["dominant","形容詞","支配的な","ˈdɒmɪnənt","The dominant view supports reform.","学術"],
+  ["explicit","形容詞","明示的な","ɪkˈsplɪsɪt","Give explicit instructions to the team.","TOEFL"],
+  ["indicate","動詞","示す","ˈɪndɪkeɪt","The graph indicates steady growth.","学術"],
+  ["rational","形容詞","合理的な","ˈræʃənəl","Make rational decisions.","学術"],
+  ["research","名詞","研究","rɪˈsɜːtʃ","Conduct thorough research first.","学術"],
+  ["simulate","動詞","シミュレートする","ˈsɪmjʊleɪt","Simulate various scenarios.","学術"],
+  ["aptitude","名詞","適性","ˈæptɪtjuːd","She shows great aptitude for math.","TOEFL"],
+  ["catalyst","名詞","触媒・きっかけ","ˈkætəlɪst","The event was a catalyst for change.","学術"],
+  ["envisage","動詞","想定する","ɪnˈvɪzɪdʒ","Envisage the future of the industry.","TOEFL"],
+  ["implicit","形容詞","暗黙の","ɪmˈplɪsɪt","There is an implicit agreement.","学術"],
+  ["paradigm","名詞","パラダイム","ˈpærədaɪm","A paradigm shift occurred in physics.","学術"],
+  ["quantify","動詞","定量化する","ˈkwɒntɪfaɪ","Quantify the impact of the policy.","学術"],
+  ["rigorous","形容詞","厳密な","ˈrɪɡərəs","Apply rigorous testing methods.","学術"],
+  ["stimulus","名詞","刺激","ˈstɪmjʊləs","A fiscal stimulus was introduced.","学術"],
+  ["validate","動詞","検証する","ˈvælɪdeɪt","Validate the model\'s predictions.","学術"],
+  ["volatile","形容詞","揮発性の・不安定な","ˈvɒlətaɪl","Stock prices are volatile.","学術"],
+  ["culpable","形容詞","有責の","ˈkʌlpəbəl","He was found culpable.","学術"],
+  ["epidemic","名詞","流行病","ˌepɪˈdemɪk","An epidemic spread quickly.","学術"],
+  ["landmark","名詞","画期的な出来事","ˈlændmɑːk","It was a landmark ruling.","学術"],
+  ["mitigate","動詞","緩和する","ˈmɪtɪɡeɪt","Mitigate the risks in advance.","学術"],
+  ["portrait","名詞","描写・肖像","ˈpɔːtrɪt","The book paints a vivid portrait.","学術"],
+  ["scaffold","動詞","足場を組む・支援する","ˈskæfəʊld","Scaffold learning step by step.","学術"],
+  ["vigorous","形容詞","精力的な","ˈvɪɡərəs","A vigorous debate followed.","TOEFL"],
+  ["formerly","副詞","以前は","ˈfɔːməli","Formerly known as the R&D team.","学術"],
+  ["structure","名詞","構造","ˈstrʌktʃər","The organizational structure changed.","学術"],
+  ["consensus","名詞","合意","kənˈsensəs","Reach consensus before proceeding.","学術"],
+  ["extensive","形容詞","広範な","ɪkˈstensɪv","Conduct extensive research.","学術"],
+  ["intensive","形容詞","集中的な","ɪnˈtensɪv","Attend an intensive training course.","TOEFL"],
+  ["precedent","名詞","前例","ˈpresɪdənt","Set a legal precedent.","学術"],
+  ["reconcile","動詞","和解する・調整する","ˈrekənsaɪl","Reconcile different viewpoints.","TOEFL"],
+  ["replicate","動詞","複製する","ˈreplɪkeɪt","Replicate the experiment to confirm.","学術"],
+  ["represent","動詞","表す・代表する","ˌreprɪˈzent","Graphs represent data clearly.","学術"],
+  ["speculate","動詞","推測する","ˈspekjʊleɪt","Don\'t speculate without data.","学術"],
+  ["tentative","形容詞","暫定的な","ˈtentətɪv","A tentative schedule was drawn up.","TOEFL"],
+  ["withstand","動詞","耐える","wɪðˈstænd","The structure must withstand pressure.","TOEFL"],
+  ["construct","動詞","構築する","kənˈstrʌkt","Construct a solid argument.","学術"],
+  ["prevalent","形容詞","広く行き渡った","ˈprevələnt","Social media is prevalent.","学術"],
+  ["skeptical","形容詞","懐疑的な","ˈskeptɪkəl","Remain skeptical of claims.","学術"],
+  ["coexist","動詞","共存する","ˌkəʊɪɡˈzɪst","Different cultures can coexist.","学術"],
+  ["collaboration","名詞","協力","kəˌlæbəˈreɪʃən","Collaboration improved results.","ビジネス"],
+  ["evaluate","動詞","評価する","ɪˈvæljʊeɪt","Evaluate each candidate fairly.","学術"],
+  ["autonomy","名詞","自律性","ɔːˈtɒnəmi","Give employees more autonomy.","学術"],
+  ["diagnose","動詞","診断する","ˈdaɪəɡnəʊz","The doctor diagnosed the illness.","学術"],
+  ["inherent","形容詞","固有の","ɪnˈhɪərənt","There are inherent risks in business.","学術"],
+  ["variable","名詞","変数","ˈveərɪəbəl","Control all variables in the test.","学術"],
+  ["exposure","名詞","露出・曝露","ɪkˈspəʊʒər","Limit exposure to chemicals.","学術"],
+  ["hallmark","名詞","特徴・証明","ˈhɔːlmɑːk","Precision is the hallmark of quality.","TOEFL"],
+  ["opponent","名詞","反対者","əˈpəʊnənt","Address the opponent\'s argument.","学術"],
+  ["partisan","形容詞","党派的な","ˈpɑːtɪzæn","Avoid partisan bias.","学術"],
+  ["underpin","動詞","支える","ˌʌndəˈpɪn","Evidence underpins the theory.","学術"],
+  ["argument","名詞","議論・主張","ˈɑːɡjʊmənt","Make a clear argument.","学術"],
+  ["aggregate","動詞","集計する","ˈæɡrɪɡeɪt","Data was aggregated from all regions.","学術"],
+  ["ambiguous","形容詞","曖昧な","æmˈbɪɡjuəs","The instructions were ambiguous.","TOEFL"],
+  ["attribute","動詞","帰因する","əˈtrɪbjuːt","Success was attributed to teamwork.","学術"],
+  ["awareness","名詞","認識・意識","əˈweənɪs","Public awareness of health is growing.","学術"],
+  ["correlate","動詞","相関する","ˈkɒrəleɪt","Exercise correlates with health.","学術"],
+  ["framework","名詞","枠組み","ˈfreɪmwɜːk","A legal framework was established.","学術"],
+  ["cognitive","形容詞","認知の","ˈkɒɡnɪtɪv","Exercise has cognitive benefits.","学術"],
+  ["conducive","形容詞","促進する","kənˈdjuːsɪv","A quiet room is conducive to study.","TOEFL"],
+  ["deficient","形容詞","欠乏している","dɪˈfɪʃənt","The diet is deficient in iron.","TOEFL"],
+  ["dominance","名詞","支配","ˈdɒmɪnəns","Establish dominance in the market.","学術"],
+  ["fluctuate","動詞","変動する","ˈflʌktʃʊeɪt","Prices fluctuate with demand.","学術"],
+  ["identical","形容詞","同一の","aɪˈdentɪkəl","The results were identical.","学術"],
+  ["intrinsic","形容詞","本質的な","ɪnˈtrɪnsɪk","Love has intrinsic value.","学術"],
+  ["mechanism","名詞","仕組み","ˈmekənɪzəm","Understand the biological mechanism.","学術"],
+  ["migration","名詞","移動・移民","maɪˈɡreɪʃən","Data migration can be complex.","学術"],
+  ["postulate","動詞","仮定する","ˈpɒstjʊleɪt","Scientists postulated a new theory.","学術"],
+  ["aggravate","動詞","悪化させる","ˈæɡrəveɪt","Stress can aggravate the condition.","TOEFL"],
+  ["apprehend","動詞","逮捕する・理解する","ˌæprɪˈhend","The suspect was apprehended.","学術"],
+  ["discourse","名詞","談話・言説","ˈdɪskɔːs","Academic discourse is complex.","学術"],
+  ["disparity","名詞","格差","dɪˈspærɪti","Address income disparity.","学術"],
+  ["hostility","名詞","敵意","hɒˈstɪlɪti","Reduce hostility between teams.","学術"],
+  ["intricate","形容詞","複雑な","ˈɪntrɪkɪt","The mechanism is intricate.","TOEFL"],
+  ["narrative","名詞","物語・説明","ˈnærətɪv","Craft a compelling narrative.","学術"],
+  ["objectify","動詞","客体化する","əbˈdʒektɪfaɪ","Don\'t objectify people.","学術"],
+  ["pragmatic","形容詞","実用的な","præɡˈmætɪk","Take a pragmatic approach.","TOEFL"],
+  ["prominent","形容詞","著名な","ˈprɒmɪnənt","A prominent researcher spoke.","学術"],
+  ["stimulate","動詞","刺激する","ˈstɪmjʊleɪt","Stimulate economic growth.","学術"],
+  ["synthesis","名詞","統合・合成","ˈsɪnθɪsɪs","Create a synthesis of ideas.","学術"],
+  ["tenacious","形容詞","粘り強い","tɪˈneɪʃəs","She is a tenacious negotiator.","TOEFL"],
+  ["tolerance","名詞","寛容・耐性","ˈtɒlərəns","Show tolerance for different views.","学術"],
+  ["therefore","副詞","したがって","ˈðeəfɔːr","Therefore, a change is needed.","学術"],
+  ["constraint","名詞","制約","kənˈstreɪnt","Budget constraints limited options.","学術"],
+  ["supplement","動詞","補う","ˈsʌplɪment","Supplement income with freelancing.","TOEFL"],
+  ["complement","動詞","補完する","ˈkɒmplɪment","The two tools complement each other.","TOEFL"],
+  ["convention","名詞","慣習・大会","kənˈvenʃən","Follow academic writing conventions.","学術"],
+  ["accountability","名詞","説明責任","əˌkaʊntəˈbɪlɪti","Leaders must show accountability.","ビジネス"],
+  ["administration","名詞","管理・行政","ədˌmɪnɪˈstreɪʃən","The administration approved the plan.","ビジネス"],
+  ["commentary","名詞","解説","ˈkɒməntri","Provide a brief commentary.","学術"],
+  ["compelling","形容詞","説得力のある","kəmˈpelɪŋ","She made a compelling argument.","TOEFL"],
+  ["conception","名詞","概念・着想","kənˈsepʃən","A new conception of learning emerged.","学術"],
+  ["dependency","名詞","依存","dɪˈpendənsi","Reduce dependency on imports.","学術"],
+  ["prosperity","名詞","繁栄","prɒˈsperɪti","Work toward shared prosperity.","学術"],
+  ["sequential","形容詞","順次的な","sɪˈkwenʃəl","Follow sequential steps.","学術"],
+  ["subjective","形容詞","主観的な","səbˈdʒektɪv","Art appreciation is subjective.","学術"],
+  ["trajectory","名詞","軌道・軌跡","trəˈdʒektəri","Map the career trajectory.","学術"],
+  ["criteria","名詞","基準（複数）","kraɪˈtɪərɪə","List the evaluation criteria.","学術"],
+  ["coherent","形容詞","一貫した","kəʊˈhɪərənt","Write a coherent argument.","TOEFL"],
+  ["coincide","動詞","一致する","ˌkəʊɪnˈsaɪd","Their views coincide on this point.","学術"],
+  ["ideology","名詞","イデオロギー","ˌaɪdɪˈɒlədʒi","Different ideologies shape politics.","学術"],
+  ["bilateral","形容詞","双方の","baɪˈlætərəl","They signed a bilateral agreement.","学術"],
+  ["component","名詞","構成要素","kəmˈpəʊnənt","Each component must be tested.","学術"],
+  ["determine","動詞","決定する","dɪˈtɜːmɪn","Research will determine the outcome.","学術"],
+  ["formulate","動詞","策定する","ˈfɔːmjʊleɪt","They formulated a new policy.","学術"],
+  ["interpret","動詞","解釈する","ɪnˈtɜːprɪt","How do you interpret this data?","学術"],
+  ["undermine","動詞","損なう","ˌʌndəˈmaɪn","Don\'t undermine your colleagues.","TOEFL"],
+  ["alleviate","動詞","緩和する","əˈliːvɪeɪt","Medication can alleviate pain.","TOEFL"],
+  ["arbitrary","形容詞","恣意的な","ˈɑːbɪtrəri","The decision seemed arbitrary.","TOEFL"],
+  ["ascertain","動詞","確かめる","ˌæsəˈteɪn","Ascertain the cause of the error.","TOEFL"],
+  ["elaborate","動詞","詳しく述べる","ɪˈlæbəreɪt","Please elaborate on your point.","TOEFL"],
+  ["empirical","形容詞","経験的な","ɪmˈpɪrɪkəl","Empirical evidence is needed.","学術"],
+  ["plausible","形容詞","もっともらしい","ˈplɔːzɪbəl","That is a plausible explanation.","TOEFL"],
+  ["proponent","名詞","支持者","prəˈpəʊnənt","She is a proponent of clean energy.","学術"],
+  ["resilient","形容詞","回復力のある","rɪˈzɪlɪənt","Build a resilient organization.","学術"],
+  ["aftermath","名詞","余波・結果","ˈɑːftəmæθ","The aftermath of the storm was severe.","学術"],
+  ["enumerate","動詞","列挙する","ɪˈnjuːməreɪt","Enumerate all the steps.","学術"],
+  ["impartial","形容詞","公平な","ɪmˈpɑːʃəl","An impartial judge is needed.","学術"],
+  ["ingenious","形容詞","独創的な","ɪnˈdʒiːnɪəs","It was an ingenious solution.","TOEFL"],
+  ["intervene","動詞","介入する","ˌɪntəˈviːn","The manager intervened in the dispute.","学術"],
+  ["originate","動詞","起源する","əˈrɪdʒɪneɪt","The idea originated in Japan.","学術"],
+  ["parameter","名詞","パラメータ","pəˈræmɪtər","Set the parameters carefully.","学術"],
+  ["reinstate","動詞","復職させる","ˌriːɪnˈsteɪt","The policy was reinstated.","学術"],
+  ["unanimous","形容詞","全会一致の","juːˈnænɪməs","The vote was unanimous.","学術"],
+  ["conviction","名詞","確信・有罪","kənˈvɪkʃən","He spoke with great conviction.","TOEFL"],
+  ["imperative","形容詞","必須の","ɪmˈperətɪv","It is imperative to act now.","TOEFL"],
+  ["subsequent","形容詞","その後の","ˈsʌbsɪkwənt","Subsequent research confirmed this.","学術"],
+  ["sufficient","形容詞","十分な","səˈfɪʃənt","Is the evidence sufficient?","学術"],
+  ["corruption","名詞","腐敗","kəˈrʌpʃən","Fight corruption in government.","学術"],
+  ["deficiency","名詞","欠乏","dɪˈfɪʃənsi","Iron deficiency causes fatigue.","学術"],
+  ["forthright","形容詞","率直な","ˈfɔːθraɪt","She is forthright in her opinions.","TOEFL"],
+  ["generalize","動詞","一般化する","ˈdʒenərəlaɪz","Don\'t generalize from one case.","学術"],
+  ["governance","名詞","統治","ˈɡʌvənəns","Good governance builds trust.","学術"],
+  ["linguistic","形容詞","言語の","lɪŋˈɡwɪstɪk","Linguistic skills are valuable.","学術"],
+  ["negligible","形容詞","無視できる","ˈneɡlɪdʒɪbəl","The error is negligible.","学術"],
+  ["psychology","名詞","心理学","saɪˈkɒlədʒi","Understanding psychology helps.","学術"],
+  ["scrutinize","動詞","精査する","ˈskruːtɪnaɪz","Scrutinize every detail.","TOEFL"],
+  ["perpetuate","動詞","永続させる","pəˈpetʃʊeɪt","Don\'t perpetuate harmful stereotypes.","学術"],
+  ["apparatus","名詞","装置","ˌæpəˈreɪtəs","Use the laboratory apparatus carefully.","学術"],
+  ["erroneous","形容詞","誤った","ɪˈrəʊnɪəs","Correct the erroneous assumption.","TOEFL"],
+  ["rationale","名詞","根拠","ˌræʃəˈnɑːl","Explain the rationale behind the plan.","学術"],
+  ["reinforce","動詞","強化する","ˌriːɪnˈfɔːs","Reinforce key concepts.","学術"],
+  ["coherence","名詞","一貫性","kəʊˈhɪərəns","The report lacked coherence.","学術"],
+  ["criterion","名詞","基準（単数）","kraɪˈtɪərɪən","The main criterion is cost.","学術"],
+  ["deviation","名詞","逸脱","ˌdiːvɪˈeɪʃən","Avoid deviation from the plan.","学術"],
+  ["associate","動詞","関連付ける","əˈsəʊʃɪeɪt","Associate actions with outcomes.","学術"],
+  ["demonstrate","動詞","実証する","ˈdemənstreɪt","The experiment demonstrates the theory.","学術"],
+  ["perspective","名詞","視点","pəˈspektɪv","Consider different perspectives.","学術"],
+  ["discrepancy","名詞","不一致","dɪˈskrepənsi","Investigate the data discrepancy.","学術"],
+  ["progressive","形容詞","進歩的な","prəˈɡresɪv","A progressive tax system.","学術"],
+  ["facilitate","動詞","促進する","fəˈsɪlɪteɪt","Technology facilitates communication.","TOEFL"],
+  ["hypothesis","名詞","仮説","haɪˈpɒθɪsɪs","Test the hypothesis carefully.","学術"],
+  ["vulnerable","形容詞","脆弱な","ˈvʌlnərəbəl","Protect vulnerable populations.","TOEFL"],
+  ["accumulate","動詞","蓄積する","əˈkjuːmjʊleɪt","Data accumulates over time.","学術"],
+  ["ambivalent","形容詞","相反する感情を持つ","æmˈbɪvələnt","She felt ambivalent about moving.","TOEFL"],
+  ["assimilate","動詞","同化する","əˈsɪmɪleɪt","He assimilated into the new culture.","学術"],
+  ["contradict","動詞","矛盾する","ˌkɒntrəˈdɪkt","New evidence contradicts the theory.","学術"],
+  ["cumulative","形容詞","累積的な","ˈkjuːmjʊlətɪv","The cumulative effect is significant.","学術"],
+  ["equivalent","形容詞","同等の","ɪˈkwɪvələnt","Find an equivalent solution.","学術"],
+  ["exhaustive","形容詞","徹底的な","ɪɡˈzɔːstɪv","Conduct an exhaustive analysis.","学術"],
+  ["expedition","名詞","遠征","ˌekspɪˈdɪʃən","They planned an expedition to Antarctica.","学術"],
+  ["illuminate","動詞","照らす・明らかにする","ɪˈluːmɪneɪt","The case study illuminates the issue.","学術"],
+  ["inadequate","形容詞","不十分な","ɪnˈædɪkwɪt","The resources were inadequate.","TOEFL"],
+  ["inevitable","形容詞","避けられない","ɪnˈevɪtəbəl","Change is inevitable.","学術"],
+  ["invariably","副詞","常に","ɪnˈveərɪəbli","She invariably arrives on time.","TOEFL"],
+  ["legitimate","形容詞","合法の","lɪˈdʒɪtɪmɪt","Is this a legitimate concern?","学術"],
+  ["phenomenon","名詞","現象","fɪˈnɒmɪnən","Study the natural phenomenon.","学術"],
+  ["altruistic","形容詞","利他的な","ˌæltruˈɪstɪk","Her decision was purely altruistic.","学術"],
+  ["arithmetic","名詞","算数","əˈrɪθmɪtɪk","Basic arithmetic is essential.","学術"],
+  ["circumvent","動詞","回避する","ˌsɜːkəmˈvent","Circumvent unnecessary red tape.","TOEFL"],
+  ["counteract","動詞","打ち消す","ˌkaʊntərˈækt","Exercise can counteract stress.","TOEFL"],
+  ["deliberate","形容詞","意図的な","dɪˈlɪbərɪt","It was a deliberate choice.","TOEFL"],
+  ["irrational","形容詞","不合理な","ɪˈræʃənəl","Avoid irrational fears.","学術"],
+  ["manipulate","動詞","操る","məˈnɪpjʊleɪt","Don\'t manipulate the data.","学術"],
+  ["meticulous","形容詞","細心の","mɪˈtɪkjʊləs","She is meticulous in her work.","TOEFL"],
+  ["proportion","名詞","割合","prəˈpɔːʃən","A large proportion disagreed.","学術"],
+  ["reciprocal","形容詞","相互の","rɪˈsɪprəkəl","Build a reciprocal relationship.","学術"],
+  ["trivialize","動詞","軽視する","ˈtrɪvɪəlaɪz","Don\'t trivialize the issue.","学術"],
+  ["consecutive","形容詞","連続した","kənˈsekjʊtɪv","They won three consecutive matches.","TOEFL"],
+  ["influential","形容詞","影響力のある","ˌɪnfluˈenʃəl","She is an influential leader.","TOEFL"],
+  ["legislature","名詞","立法機関","ˈledʒɪslɪtʃər","The legislature passed the bill.","学術"],
+  ["bureaucracy","名詞","官僚制","bjʊˈrɒkrəsi","Cut through the bureaucracy.","学術"],
+  ["catastrophe","名詞","大惨事","kəˈtæstrəfi","The drought was a catastrophe.","学術"],
+  ["contemplate","動詞","熟考する","ˈkɒntəmpleɪt","Contemplate the consequences first.","TOEFL"],
+  ["susceptible","形容詞","影響を受けやすい","səˈseptɪbəl","Young plants are susceptible to frost.","学術"],
+  ["articulate","動詞","明確に述べる","ɑːˈtɪkjʊleɪt","Articulate your ideas precisely.","TOEFL"],
+  ["systematic","形容詞","体系的な","ˌsɪstəˈmætɪk","Use a systematic approach.","学術"],
+  ["underlying","形容詞","根底にある","ˌʌndəˈlaɪɪŋ","Address the underlying issue.","学術"],
+  ["breakthrough","名詞","突破口","ˈbreɪkθruː","Scientists made a major breakthrough.","学術"],
+  ["formidable","形容詞","手ごわい","ˈfɔːmɪdəbəl","They faced a formidable challenge.","TOEFL"],
+  ["propaganda","名詞","プロパガンダ","ˌprɒpəˈɡændə","Identify political propaganda.","学術"],
+  ["solidarity","名詞","連帯","ˌsɒlɪˈdærɪti","Show solidarity with colleagues.","学術"],
+  ["fundamental","形容詞","根本的な","ˌfʌndəˈmentəl","Reading is a fundamental skill.","学術"],
+  ["methodology","名詞","方法論","ˌmeθəˈdɒlədʒi","Choose an appropriate methodology.","学術"],
+  ["significant","形容詞","重要な","sɪɡˈnɪfɪkənt","A significant change was observed.","学術"],
+  ["provisional","形容詞","暫定的な","prəˈvɪʒənəl","A provisional agreement was signed.","TOEFL"],
+  ["qualitative","形容詞","質的な","ˈkwɒlɪtətɪv","Conduct qualitative interviews.","学術"],
+  ["preliminary","形容詞","予備的な","prɪˈlɪmɪnəri","A preliminary report was issued.","学術"],
+  ["consequently","副詞","結果として","ˈkɒnsɪkwəntli","He failed to prepare; consequently, he failed.","学術"],
+  ["nevertheless","副詞","それにもかかわらず","ˌnevəðəˈles","Nevertheless, we move forward.","学術"],
+  ["affirmative","形容詞","肯定の","əˈfɜːrmətɪv","He gave an affirmative response.","TOEFL"],
+  ["implication","名詞","含意・影響","ˌɪmplɪˈkeɪʃən","Consider all implications first.","学術"],
+  ["incorporate","動詞","組み込む","ɪnˈkɔːpəreɪt","Incorporate feedback into the design.","TOEFL"],
+  ["connotation","名詞","含意・ニュアンス","ˌkɒnəˈteɪʃən","The word has a negative connotation.","学術"],
+  ["forthcoming","形容詞","近づいている","ˌfɔːθˈkʌmɪŋ","Watch for the forthcoming announcement.","TOEFL"],
+  ["disposition","名詞","性質・傾向","ˌdɪspəˈzɪʃən","He has a calm disposition.","TOEFL"],
+  ["furthermore","副詞","さらに","ˈfɜːðəmɔːr","Furthermore, costs have risen.","学術"],
+  ["marginalize","動詞","周縁化する","ˈmɑːdʒɪnəlaɪz","Don\'t marginalize minority voices.","学術"],
+  ["superfluous","形容詞","余分な","suːˈpɜːflʊəs","Remove superfluous details.","TOEFL"],
+  ["quantitative","形容詞","量的な","ˈkwɒntɪtətɪv","Use quantitative data.","学術"],
+  ["substantiate","動詞","証明する","səbˈstænʃɪeɪt","Substantiate your claims.","TOEFL"],
+  ["circumstance","名詞","状況・事情","ˈsɜːkəmstəns","Adapt to any circumstance.","学術"],
+  ["theoretical","形容詞","理論的な","ˌθɪərɪˈetɪkəl","Discuss the theoretical basis.","学術"],
+  ["unprecedented","形容詞","前例のない","ʌnˈpresɪdentɪd","This was an unprecedented achievement.","TOEFL"],
+  ["deteriorate","動詞","悪化する","dɪˈtɪərɪəreɪt","The situation began to deteriorate.","TOEFL"],
+  ["homogeneous","形容詞","均質の","ˌhɒməˈdʒiːnɪəs","The group was homogeneous.","学術"],
+  ["anthropology","名詞","人類学","ˌænθrəˈpɒlədʒi","She studies cultural anthropology.","学術"],
+  ["conservation","名詞","保護・保全","ˌkɒnsəˈveɪʃən","Conservation of forests is vital.","学術"],
+  ["repercussion","名詞","影響・反響","ˌriːpəˈkʌʃən","Consider repercussions carefully.","TOEFL"],
+  ["comprehensive","形容詞","包括的な","ˌkɒmprɪˈhensɪv","A comprehensive guide was written.","TOEFL"],
+  ["predominantly","副詞","主に","prɪˈdɒmɪnəntli","The audience was predominantly young.","TOEFL"],
+  ["ramification","名詞","影響・波及効果","ˌræmɪfɪˈkeɪʃən","Consider all ramifications.","TOEFL"],
+  ["jurisdiction","名詞","管轄権","ˌdʒʊərɪsˈdɪkʃən","This falls under federal jurisdiction.","学術"],
+  ["sophisticated","形容詞","洗練された","səˈfɪstɪkeɪtɪd","A sophisticated algorithm was used.","学術"],
+  ["contradictory","形容詞","矛盾した","ˌkɒntrəˈdɪktəri","The evidence was contradictory.","学術"],
+  ["inconsistency","名詞","矛盾","ˌɪnkənˈsɪstənsi","Point out any inconsistency.","学術"],
+  ["paradoxically","副詞","逆説的に","ˌpærəˈdɒksɪkli","Paradoxically, less is more.","学術"],
+  ["infrastructure","名詞","インフラ","ˈɪnfrəstrʌktʃər","Invest in digital infrastructure.","学術"],
+  ["irreversible","形容詞","取り消せない","ˌɪrɪˈvɜːsɪbəl","The change is irreversible.","学術"],
+  ["controversial","形容詞","議論を呼ぶ","ˌkɒntrəˈvɜːʃəl","The policy is controversial.","TOEFL"],
+  ["chronological","形容詞","年代順の","ˌkrɒnəˈlɒdʒɪkəl","List events in chronological order.","学術"],
+  ["philosophical","形容詞","哲学的な","ˌfɪləˈsɒfɪkəl","A philosophical debate arose.","学術"],
+  ["biodiversity","名詞","生物多様性","ˌbaɪəʊdaɪˈvɜːsɪti","Protect local biodiversity.","学術"],
+];
+
+// ============================================================
+//  STATE
+// ============================================================
+const vocab = RAW.map((r, i) => ({
+  id: i,
+  word: r[0], pos: r[1], meaning: r[2],
+  phonetic: r[3], example: r[4], cat: r[5],
+  known: false, starred: false, status: 'none'
+}));
+
+let filtered = [...vocab];
+let flashIdx = 0;
+let isFlipped = false;
+let currentMode = 'flash';
+let listPage = 0;
+const PAGE_SIZE = 40;
+
+// Quiz state
+let quizCorrect = 0, quizWrong = 0, quizTotal = 0;
+
+// Load saved state
+try {
+  const saved = JSON.parse(localStorage.getItem('vocab_state') || '{}');
+  if (saved.states) {
+    saved.states.forEach(s => {
+      if (vocab[s.id]) { vocab[s.id].known = s.known; vocab[s.id].starred = s.starred; }
+    });
+  }
+} catch(e){}
+
+function saveState() {
+  const states = vocab.filter(v => v.known || v.starred).map(v => ({id:v.id, known:v.known, starred:v.starred}));
+  localStorage.setItem('vocab_state', JSON.stringify({states}));
+  updateHeaderStats();
+}
+
+function updateHeaderStats() {
+  document.getElementById('h-known').textContent = vocab.filter(v => v.known).length;
+  document.getElementById('h-unknown').textContent = vocab.filter(v => !v.known).length;
+  document.getElementById('h-starred').textContent = vocab.filter(v => v.starred).length;
+}
+
+// ============================================================
+//  FILTER
+// ============================================================
+function applyFilter() {
+  const search = document.getElementById('search').value.toLowerCase();
+  const cat = document.getElementById('filter-cat').value;
+  const status = document.getElementById('filter-status').value;
+
+  filtered = vocab.filter(v => {
+    if (search && !v.word.toLowerCase().includes(search) && !v.meaning.includes(search)) return false;
+    if (cat !== 'all' && v.cat !== cat) return false;
+    if (status === 'known' && !v.known) return false;
+    if (status === 'unknown' && v.known) return false;
+    if (status === 'starred' && !v.starred) return false;
+    return true;
+  });
+
+  flashIdx = 0;
+  listPage = 0;
+  if (currentMode === 'flash') renderFlash();
+  if (currentMode === 'list') renderList();
+}
+
+document.getElementById('search').addEventListener('input', applyFilter);
+document.getElementById('filter-cat').addEventListener('change', applyFilter);
+document.getElementById('filter-status').addEventListener('change', applyFilter);
+
+function shuffleWords() {
+  for (let i = filtered.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [filtered[i], filtered[j]] = [filtered[j], filtered[i]];
+  }
+  flashIdx = 0;
+  if (currentMode === 'flash') renderFlash();
+  if (currentMode === 'list') renderList();
+}
+
+// ============================================================
+//  MODE
+// ============================================================
+function setMode(mode) {
+  currentMode = mode;
+  ['flash','list','quiz'].forEach(m => {
+    document.getElementById('mode-' + m).style.display = m === mode ? 'block' : 'none';
+  });
+  document.querySelectorAll('.mode-tab').forEach((t,i) => {
+    t.classList.toggle('active', ['flash','list','quiz'][i] === mode);
+  });
+  if (mode === 'list') renderList();
+  if (mode === 'quiz') startQuiz();
+  if (mode === 'flash') renderFlash();
+}
+
+// ============================================================
+//  FLASHCARD
+// ============================================================
+function renderFlash() {
+  if (!filtered.length) return;
+  const w = filtered[flashIdx];
+  isFlipped = false;
+  document.getElementById('card-inner').classList.remove('flipped');
+  document.getElementById('fc-word').textContent = w.word;
+  document.getElementById('fc-phonetic').textContent = `/${w.phonetic}/`;
+  document.getElementById('fc-pos').textContent = w.pos;
+  document.getElementById('fc-pos2').textContent = w.pos;
+  document.getElementById('fc-meaning').textContent = w.meaning;
+  document.getElementById('fc-example').textContent = w.example;
+  document.getElementById('fc-current').textContent = flashIdx + 1;
+  document.getElementById('fc-total').textContent = filtered.length;
+  const pct = ((flashIdx + 1) / filtered.length * 100).toFixed(1);
+  document.getElementById('progress-bar').style.width = pct + '%';
+  const starBtn = document.getElementById('star-btn');
+  starBtn.textContent = w.starred ? '★' : '☆';
+  starBtn.classList.toggle('starred', w.starred);
+}
+
+function flipCard() {
+  isFlipped = !isFlipped;
+  document.getElementById('card-inner').classList.toggle('flipped', isFlipped);
+}
+
+function nextCard() {
+  if (filtered.length === 0) return;
+  flashIdx = (flashIdx + 1) % filtered.length;
+  renderFlash();
+}
+
+function prevCard() {
+  if (filtered.length === 0) return;
+  flashIdx = (flashIdx - 1 + filtered.length) % filtered.length;
+  renderFlash();
+}
+
+function markCard(known) {
+  if (!filtered.length) return;
+  filtered[flashIdx].known = known;
+  vocab[filtered[flashIdx].id].known = known;
+  saveState();
+  nextCard();
+}
+
+function toggleStar() {
+  if (!filtered.length) return;
+  const w = filtered[flashIdx];
+  w.starred = !w.starred;
+  vocab[w.id].starred = w.starred;
+  saveState();
+  renderFlash();
+}
+
+// Keyboard
+document.addEventListener('keydown', e => {
+  if (currentMode !== 'flash') return;
+  if (e.key === 'ArrowRight' || e.key === 'd') nextCard();
+  if (e.key === 'ArrowLeft' || e.key === 'a') prevCard();
+  if (e.key === ' ') { e.preventDefault(); flipCard(); }
+  if (e.key === 'k') markCard(true);
+  if (e.key === 'u') markCard(false);
+});
+
+// ============================================================
+//  LIST
+// ============================================================
+function renderList() {
+  const grid = document.getElementById('word-grid');
+  const start = listPage * PAGE_SIZE;
+  const page = filtered.slice(start, start + PAGE_SIZE);
+  grid.innerHTML = '';
+  page.forEach(w => {
+    const d = document.createElement('div');
+    d.className = 'word-card anim-in' + (w.known ? ' known-card' : '');
+    d.innerHTML = `
+      <div class="wc-top"><span class="wc-word">${w.word}</span><span class="wc-num">#${w.id+1}</span></div>
+      <div class="wc-pos">${w.pos} · ${w.cat}</div>
+      <div class="wc-meaning">${w.meaning}</div>
+      <div class="wc-phonetic">/${w.phonetic}/</div>
+    `;
+    d.onclick = () => {
+      flashIdx = filtered.indexOf(w);
+      setMode('flash');
+    };
+    grid.appendChild(d);
+  });
+  renderPagination();
+}
+
+function renderPagination() {
+  const total = Math.ceil(filtered.length / PAGE_SIZE);
+  const p = document.getElementById('pagination');
+  p.innerHTML = '';
+  if (total <= 1) return;
+
+  const mk = (label, page, active, disabled) => {
+    const b = document.createElement('button');
+    b.className = 'page-btn' + (active ? ' active' : '');
+    b.textContent = label;
+    b.disabled = disabled;
+    b.onclick = () => { listPage = page; renderList(); window.scrollTo(0,0); };
+    return b;
+  };
+  p.appendChild(mk('«', 0, false, listPage === 0));
+  p.appendChild(mk('‹', listPage-1, false, listPage === 0));
+  for (let i = Math.max(0, listPage-2); i <= Math.min(total-1, listPage+2); i++) {
+    p.appendChild(mk(i+1, i, i === listPage, false));
+  }
+  p.appendChild(mk('›', listPage+1, false, listPage >= total-1));
+  p.appendChild(mk('»', total-1, false, listPage >= total-1));
+}
+
+// ============================================================
+//  QUIZ (Typing Format)
+// ============================================================
+//  QUIZ
+// ============================================================
+let quizWord = null;
+let quizAnswered = false;
+let quizStreak = 0;
+let quizHintShown = false;
+let quizDifficulty = 'all'; // 'all' | 'easy' | 'mid' | 'hard'
+
+// Difficulty bands (based on sorted index in vocab)
+function getDifficultyPool() {
+  const src = filtered.length > 0 ? filtered : vocab;
+  const n = src.length;
+  if (quizDifficulty === 'easy') return src.slice(0, Math.floor(n * 0.33));
+  if (quizDifficulty === 'mid')  return src.slice(Math.floor(n * 0.33), Math.floor(n * 0.66));
+  if (quizDifficulty === 'hard') return src.slice(Math.floor(n * 0.66));
+  return src;
+}
+
+function setDifficulty(level) {
+  quizDifficulty = level;
+  document.querySelectorAll('.quiz-diff-tab').forEach(t =>
+    t.classList.toggle('active', t.dataset.level === level)
+  );
+  updatePoolSize();
+  // Reset stats and go to next question
+  startQuiz();
+}
+
+function updatePoolSize() {
+  const pool = getDifficultyPool();
+  document.getElementById('quiz-pool-size').textContent = `${pool.length}語`;
+}
+
+function startQuiz() {
+  quizCorrect = 0; quizWrong = 0; quizTotal = 0; quizStreak = 0;
+  document.getElementById('q-correct').textContent = 0;
+  document.getElementById('q-wrong').textContent = 0;
+  document.getElementById('q-num').textContent = 0;
+  updateStreak();
+  updatePoolSize();
+  nextQuiz();
+}
+
+// Submit button dual role: 確認(before answer) → 次へ(after answer)
+function setSubmitBtn(phase) {
+  const btn = document.getElementById('quiz-submit-btn');
+  if (phase === 'confirm') {
+    btn.textContent = '確認 ↵';
+    btn.style.background = '';
+    btn.disabled = false;
+  } else {
+    btn.textContent = '次へ →';
+    btn.style.background = 'var(--accent)';
+    btn.disabled = false;
+  }
+}
+
+function setAuxBtnsState(answering) {
+  document.getElementById('hint-btn').disabled = !answering;
+  document.getElementById('dontknow-btn').disabled = !answering;
+}
+
+function nextQuiz() {
+  const pool = getDifficultyPool();
+  if (pool.length === 0) return;
+  quizAnswered = false;
+  quizHintShown = false;
+  quizWord = pool[Math.floor(Math.random() * pool.length)];
+
+  document.getElementById('quiz-meaning').textContent = quizWord.meaning;
+  document.getElementById('quiz-pos-cat').textContent = `${quizWord.pos} · ${quizWord.cat}`;
+  document.getElementById('quiz-hint').textContent = 'ヒント: —';
+  document.getElementById('quiz-hint').classList.remove('show');
+
+  const inp = document.getElementById('quiz-input');
+  inp.value = '';
+  inp.className = 'quiz-input';
+  inp.disabled = false;
+  inp.focus();
+
+  document.getElementById('quiz-feedback').className = 'quiz-feedback';
+  document.getElementById('quiz-feedback').innerHTML = '';
+  document.getElementById('quiz-card').className = 'quiz-q';
+
+  setSubmitBtn('confirm');
+  setAuxBtnsState(true);
+}
+
+function normalizeAnswer(s) {
+  return s.trim().toLowerCase().replace(/[^a-z]/g, '');
+}
+
+function showResult(correct) {
+  const card = document.getElementById('quiz-card');
+  const fb   = document.getElementById('quiz-feedback');
+  const inp  = document.getElementById('quiz-input');
+  inp.disabled = true;
+  setAuxBtnsState(false);
+  setSubmitBtn('next'); // ← button becomes 次へ
+
+  if (correct) {
+    inp.className = 'quiz-input correct-input';
+    card.className = 'quiz-q correct-flash';
+    fb.className = 'quiz-feedback correct-fb visible';
+    fb.innerHTML = `✓ 正解！<span class="correct-ans">${quizWord.word}</span> &nbsp;／${quizWord.phonetic}／`;
+    vocab[quizWord.id].known = true; quizWord.known = true; saveState();
+  } else {
+    inp.className = 'quiz-input wrong-input';
+    card.className = 'quiz-q wrong-flash';
+    fb.className = 'quiz-feedback wrong-fb visible';
+    fb.innerHTML = `✗ 正解: <span class="correct-ans">${quizWord.word}</span> &nbsp;／${quizWord.phonetic}／`;
+  }
+
+  document.getElementById('q-correct').textContent = quizCorrect;
+  document.getElementById('q-wrong').textContent   = quizWrong;
+  updateStreak();
+}
+
+// Single handler for the submit/next button
+function handleSubmitBtn() {
+  if (!quizAnswered) submitAnswer();
+  else nextQuiz();
+}
+
+function submitAnswer() {
+  if (quizAnswered || !quizWord) return;
+  const inp = document.getElementById('quiz-input');
+  const userAns = inp.value.trim();
+  if (!userAns) { inp.focus(); return; }
+
+  quizAnswered = true;
+  quizTotal++;
+  document.getElementById('q-num').textContent = quizTotal;
+
+  const correct = normalizeAnswer(userAns) === normalizeAnswer(quizWord.word);
+  if (correct) { quizCorrect++; quizStreak++; }
+  else         { quizWrong++;   quizStreak = 0; }
+
+  showResult(correct);
+}
+
+function dontKnow() {
+  if (quizAnswered || !quizWord) return;
+  quizAnswered = true;
+  quizTotal++;
+  quizWrong++; quizStreak = 0;
+  document.getElementById('q-num').textContent = quizTotal;
+  document.getElementById('quiz-input').value = '';
+  showResult(false);
+}
+
+function showHint() {
+  if (!quizWord || quizAnswered) return;
+  const w = quizWord.word;
+  const hint = w[0] + ' _ '.repeat(w.length - 1) + ` (${w.length}文字)`;
+  const el = document.getElementById('quiz-hint');
+  el.textContent = 'ヒント: ' + hint;
+  el.classList.add('show');
+  document.getElementById('quiz-input').focus();
+}
+
+function updateStreak() {
+  const el = document.getElementById('q-streak');
+  if (quizStreak >= 3) {
+    el.textContent = `🔥 ${quizStreak}連続`;
+    el.classList.add('show');
+  } else {
+    el.classList.remove('show');
+  }
+}
+
+// Enter key mirrors button behavior
+document.getElementById('quiz-input').addEventListener('keydown', e => {
+  if (e.key === 'Enter') handleSubmitBtn();
+});
+
+// ============================================================
+//  INIT
+// ============================================================
+renderFlash();
+updateHeaderStats();
+</script>
+</body>
+</html>
